@@ -3,8 +3,6 @@
 
 #include <matrixgen/adjacency-matrix.hpp>
 
-auto lambda = [](int a) { return a; };
-
 int main()
 {
   // Choose a stencil. We use a symmetric 7p-stencil for this example. 
