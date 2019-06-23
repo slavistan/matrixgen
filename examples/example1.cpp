@@ -14,6 +14,6 @@ int main()
   // enough for the poor terminal.
   const auto mat = matrixgen::adjmat1(3, 3, 1, stencil);
 
-  // Print the matrix. Converting to a dense matrix beforehand make the output look cleaner.
+  // Print the matrix. Convert to a dense matrix to make the output look cleaner.
   std::cout << std::endl << Eigen::MatrixXd(mat) << std::endl;
 }
