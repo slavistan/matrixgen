@@ -31,7 +31,7 @@ std::array<int, 2> get_matrix_entry_coordinates(
 template <
   typename Stencil_t, // std::vector/array over 3d integral points
   typename Scalar_t = double, 
-  int StorageOrder = Eigen::RowMajor,
+  int StorageOrder = Eigen::RowMajor, // TODO: implement ColMajor
   typename Index_t = int
     >
 Eigen::SparseMatrix<Scalar_t, StorageOrder, Index_t>

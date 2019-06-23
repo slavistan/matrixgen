@@ -1,10 +1,12 @@
 #include <iostream>
+#include <array>
+
+#include <matrixgen/adjacency-matrix.hpp>
 
 auto lambda = [](int a) { return a; };
 
 int main()
 {
-
-  std::cout << "Hello World!" << std::endl;
-  std::cout << "a = " << lambda(44) << std::endl;
+  const auto stencil = std::array<std::array<int, 3>, 7>{{
+      {1, 0, 0}, {-1, 0,0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}, {0, 0, 0}}};
 }

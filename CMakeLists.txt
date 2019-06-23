@@ -17,12 +17,14 @@ target_link_libraries(matrixgen INTERFACE
   Eigen3::Eigen
 )
 
-
-# Miscellaneous targets related to this project but not required for its usage (such as unit-tests).
 option(BUILD_TESTS "Build tests" ON)
 if(BUILD_TESTS)
     add_subdirectory(test)
 endif()
 
-# include external tools
+option(BUILD_EXAMPLES "Build examples" ON)
+if(BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif()
+
 include(cmake/external-tools.cmake)
