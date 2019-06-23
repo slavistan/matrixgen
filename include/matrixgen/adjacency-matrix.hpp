@@ -66,7 +66,8 @@ adjmat1(const int dimx, // number of grid nodes in the x-dimension
             const auto [ii, jj] = get_matrix_entry_coordinates(
                 {{dimx, dimy, dimz}},
                 {{xx, yy, zz}},
-                {{xx + point[0], yy + point[1], zz + point[2]}});
+                {{xx + point[0], yy + point[1], zz + point[2]}}
+            );
             triplets.push_back(Eigen::Triplet<Scalar_t>{ii, jj, value});
           }
         }
@@ -74,7 +75,7 @@ adjmat1(const int dimx, // number of grid nodes in the x-dimension
     }
   }
 
-  // create the sparse matrix from the triplet list
+  // create the sparse matrix from the triplets
   auto result = Eigen::SparseMatrix<Scalar_t, StorageOrder, Index_t>(matrixDim, matrixDim);
   result.setFromTriplets(triplets.begin(), triplets.end());
   return result;
