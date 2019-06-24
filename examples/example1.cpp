@@ -6,7 +6,8 @@
 int main()
 {
   // Choose a stencil. The stencil encodes which nodes are considered adjacent as a list of 3d offsets.
-  // A stencil shall be a 'std::array<T, n>' of arbitrary length 'n' where T is 'std::array<int, 3>'.
+  // A stencil shall be a range of arbitrary length over elements of type 'std::array<int, 3>'.
+  // Note that the stencil is traversed once for each node of the grid. Choose it's type carefully.
   // We use a symmetric 7p-stencil for this example.
   const auto stencil = std::array<std::array<int, 3>, 7>{{
       {1, 0, 0}, {-1, 0,0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}, {0, 0, 0}
