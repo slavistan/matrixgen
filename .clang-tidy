@@ -1,11 +1,13 @@
+# vim: filetype=yaml
 ---
-Checks: >-
+Checks: >
   bugprone-*,
   cppcoreguidelines-*,
   clang-analzer-*,
   cert-*,
   google-*,
   -google-readability-namespace-comments,
+  -google-readability-todo,
   hicpp-*,
   llvm-*,
   -llvm-namespace-comment,
@@ -16,10 +18,6 @@ Checks: >-
   performance-*,
   readability-*
 WarningsAsErrors: ''
-HeaderFilterRegex: ''
-AnalyzeTemporaryDtors: false
-FormatStyle:     none
-User:            noone
 CheckOptions:
   - key:             readability-identifier-naming.AbstractClassCase
     value:           CamelCase
@@ -76,7 +74,7 @@ CheckOptions:
   - key:             readability-identifier-naming.NamespaceCase
     value:           lower_case
   - key:             readability-identifier-naming.ParameterCase
-    value:           lower_case
+    value:           camelBack
   - key:             readability-identifier-naming.ParameterPackCase
     value:           lower_case
   - key:             readability-identifier-naming.PointerParameterCase
@@ -117,14 +115,12 @@ CheckOptions:
     value:           '_t'
   - key:             readability-identifier-naming.TypeAliasCase
     value:           CamelCase
-  - key:             readability-identifier-naming.TypeAliasSuffix
-    value:           '_t'
   - key:             readability-identifier-naming.TypedefCase
     value:           CamelCase
-  - key:             readability-identifier-naming.TypedefSuffix
-    value:           '_t'
   - key:             readability-identifier-naming.TypeTemplateParameterCase
     value:           CamelCase
+  - key:             readability-identifier-naming.TypeTemplateParameterSuffix
+    value:           '_t'
   - key:             readability-identifier-naming.UnionCase
     value:           CamelCase
   - key:             readability-identifier-naming.ValueTemplateParameterCase
