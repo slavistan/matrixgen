@@ -25,7 +25,8 @@ get_node_index(
 // Return coordinates of an adjacency matrix's entry corresponding to a node at 'myCoords' and its neighbor at
 // 'neighborCoords'.
 template <typename Index_t = int>
-std::array<Index_t, 2> get_matrix_entry_coordinates(
+std::array<Index_t, 2>
+get_matrix_entry_coordinates(
   const DiscretePoint3d<Index_t>& gridDimensions,
   const DiscretePoint3d<Index_t>& myCoords,
   const DiscretePoint3d<Index_t>& neighborCoords) {
@@ -37,8 +38,11 @@ std::array<Index_t, 2> get_matrix_entry_coordinates(
 
 // Return true if node at 'myCoords' is contained inside the grid.
 template <typename Index_t = int>
-bool is_inside_grid(const DiscretePoint3d<Index_t>& gridDimensions,
-                    const DiscretePoint3d<Index_t>& myCoords){
+bool
+is_inside_grid(
+  const DiscretePoint3d<Index_t>& gridDimensions,
+  const DiscretePoint3d<Index_t>& myCoords) {
+
   return (0 <= myCoords[0] && myCoords[0] < gridDimensions[0] &&
           0 <= myCoords[1] && myCoords[1] < gridDimensions[1] &&
           0 <= myCoords[2] && myCoords[2] < gridDimensions[2]);
@@ -52,10 +56,11 @@ template <
   typename Index_t = int
     >
 Eigen::SparseMatrix<Scalar_t, STORAGE_ORDER, Index_t>
-adjmat(const DiscretePoint3d<Index_t> gridDimensions,
-       const Stencil_t& stencil,
-       ValueFunc_t computeValue)
-{
+adjmat(
+  const DiscretePoint3d<Index_t> gridDimensions,
+  const Stencil_t& stencil,
+  ValueFunc_t computeValue) {
+
   // Note that the adjacency matrix is a square matrix. Wherever its width is required we use its height.
   const auto matrixHeight = gridDimensions[0] *
                             gridDimensions[1] *
