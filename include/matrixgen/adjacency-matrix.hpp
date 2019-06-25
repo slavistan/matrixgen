@@ -49,17 +49,17 @@ is_inside_grid(
 }
 
 template <
-  typename Stencil_t, // std::vector/array over 3d integral points
-  typename ValueFunc_t, // lambda computing the values
-  typename Scalar_t = double, 
-  int STORAGE_ORDER = Eigen::RowMajor, // TODO: implement ColMajor
+  typename Scalar_t = double,
+  int STORAGE_ORDER = Eigen::RowMajor,
+  typename Stencil_t,    // TODO: Use a concept
+  typename WeightFunc_t, // TODO: Use a concept
   typename Index_t = int
     >
 Eigen::SparseMatrix<Scalar_t, STORAGE_ORDER, Index_t>
 adjmat(
   const DiscretePoint3d<Index_t> gridDimensions,
   const Stencil_t& stencil,
-  ValueFunc_t computeValue) {
+  WeightFunc_t computeValue) {
 
   // Note that the adjacency matrix is a square matrix. Wherever its width is required we use its height.
   const auto matrixHeight = gridDimensions[0] *

@@ -1,5 +1,5 @@
-#include <iostream>
 #include <array>
+#include <iostream>
 
 #include <matrixgen/adjacency-matrix.hpp>
 
