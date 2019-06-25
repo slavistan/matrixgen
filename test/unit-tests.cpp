@@ -2,6 +2,7 @@
 #include <array>
 
 #include <matrixgen/adjacency-matrix.hpp>
+#include <Eigen/Dense>
 
 auto lambda = [](int a) { return a; };
 

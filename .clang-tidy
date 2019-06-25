@@ -1,0 +1,153 @@
+---
+Checks: >-
+  bugprone-*,
+  cppcoreguidelines-*,
+  clang-analzer-*,
+  cert-*,
+  google-*,
+  -google-readability-namespace-comments,
+  hicpp-*,
+  llvm-*,
+  -llvm-namespace-comment,
+  -llvm-header-guard,
+  misc-*,
+  modernize-*,
+  -modernize-return-braced-init-list,
+  performance-*,
+  readability-*
+WarningsAsErrors: ''
+HeaderFilterRegex: ''
+AnalyzeTemporaryDtors: false
+FormatStyle:     none
+User:            noone
+CheckOptions:
+  - key:             readability-identifier-naming.AbstractClassCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.ClassCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.ClassConstantCase
+    value:           UPPER_CASE
+  - key:             readability-identifier-naming.ConstantCase
+    value:           camelBack
+  - key:             readability-identifier-naming.ConstantMemberCase
+    value:           camelBack
+  - key:             readability-identifier-naming.ConstantPointerParameterCase
+    value:           camelBack
+  - key:             readability-identifier-naming.ConstantParameterCase
+    value:           camelBack
+  - key:             readability-identifier-naming.ConstexprFunctionCase
+    value:           lower_case
+  - key:             readability-identifier-naming.ConstexprMethodCase
+    value:           lower_case
+  - key:             readability-identifier-naming.ConstexprVariableCase
+    value:           UPPER_CASE
+  - key:             readability-identifier-naming.EnumCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.EnumConstantCase
+    value:           UPPER_CASE
+  - key:             readability-identifier-naming.FunctionCase
+    value:           lower_case
+  - key:             readability-identifier-naming.GlobalConstantCase
+    value:           UPPER_CASE
+  - key:             readability-identifier-naming.GlobalConstantPointerCase
+    value:           UPPER_CASE
+  - key:             readability-identifier-naming.GlobalFunctionCase
+    value:           lower_case
+  - key:             readability-identifier-naming.GlobalPointerCase
+    value:           lower_case
+  - key:             readability-identifier-naming.GlobalVariableCase
+    value:           lower_case
+  - key:             readability-identifier-naming.GlobalVariablePrefix
+    value:           'g_'
+  - key:             readability-identifier-naming.InlineNamespaceCase
+    value:           lower_case
+  - key:             readability-identifier-naming.LocalConstantCase
+    value:           camelBack
+  - key:             readability-identifier-naming.LocalConstantPointerCase
+    value:           camelBack
+  - key:             readability-identifier-naming.LocalPointerCase
+    value:           camelBack
+  - key:             readability-identifier-naming.LocalVariableCase
+    value:           camelBack
+  - key:             readability-identifier-naming.MemberCase
+    value:           camelBack
+  - key:             readability-identifier-naming.MemberSuffix
+    value:           '_'
+  - key:             readability-identifier-naming.NamespaceCase
+    value:           lower_case
+  - key:             readability-identifier-naming.ParameterCase
+    value:           lower_case
+  - key:             readability-identifier-naming.ParameterPackCase
+    value:           lower_case
+  - key:             readability-identifier-naming.PointerParameterCase
+    value:           camelBack
+  - key:             readability-identifier-naming.PrivateMemberCase
+    value:           camelBack
+  - key:             readability-identifier-naming.PrivateMemberSuffix
+    value:           '_'
+  - key:             readability-identifier-naming.PrivateMethodCase
+    value:           lower_case
+  - key:             readability-identifier-naming.PrivateMethodSuffix
+    value:           '_'
+  - key:             readability-identifier-naming.ProtectedMemberCase
+    value:           camelBack
+  - key:             readability-identifier-naming.ProtectedMemberSuffix
+    value:           '_'
+  - key:             readability-identifier-naming.PublicMemberCase
+    value:           camelBack
+  - key:             readability-identifier-naming.PublicMethodCase
+    value:           lower_case
+  - key:             readability-identifier-naming.StaticConstantCase
+    value:           UPPER_CASE
+  - key:             readability-identifier-naming.StaticConstantSuffix
+    value:           '_'
+  - key:             readability-identifier-naming.StaticCase
+    value:           lower_case
+  - key:             readability-identifier-naming.StaticSuffix
+    value:           '_'
+  - key:             readability-identifier-naming.StructCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.TemplateParameterCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.TemplateParameterSuffix
+    value:           '_t'
+  - key:             readability-identifier-naming.TemplateTemplateParameterCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.TemplateTemplateParameterSuffix
+    value:           '_t'
+  - key:             readability-identifier-naming.TypeAliasCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.TypeAliasSuffix
+    value:           '_t'
+  - key:             readability-identifier-naming.TypedefCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.TypedefSuffix
+    value:           '_t'
+  - key:             readability-identifier-naming.TypeTemplateParameterCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.UnionCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.ValueTemplateParameterCase
+    value:           UPPER_CASE
+  - key:             readability-identifier-naming.VariableCase
+    value:           camelBack
+  - key:             readability-identifier-naming.VirtualMethodCase
+    value:           lower_case
+  - key:             google-readability-braces-around-statements.ShortStatementLines
+    value:           '1'
+  - key:             google-readability-function-size.StatementThreshold
+    value:           '800'
+  - key:             modernize-loop-convert.MaxCopySize
+    value:           '16'
+  - key:             modernize-loop-convert.MinConfidence
+    value:           reasonable
+  - key:             modernize-loop-convert.NamingStyle
+    value:           CamelCase
+  - key:             modernize-pass-by-value.IncludeStyle
+    value:           llvm
+  - key:             modernize-replace-auto-ptr.IncludeStyle
+    value:           llvm
+  - key:             modernize-use-nullptr.NullMacros
+    value:           'NULL'
+...
+
