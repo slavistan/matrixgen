@@ -27,5 +27,5 @@ make
 
 After successfully performing one of the above methods of installation you may use `Matrixgen` like any other library via CMake's `find_package(Matrixgen REQUIRED)`. Note that, in addition to it's regular library dependencies, `Matrixgen` requires [`CMakeshift`][cmakeshift-url].
 
-[cmakeshift-url]: http://www.google.de
+[cmakeshift-url]: https://github.com/mbeutel/CMakeshift
 
