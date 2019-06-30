@@ -1,7 +1,7 @@
-# Project: ASCMatrixgen
+# Project: Matrixgen
 # Author: Stanislaw Hüll
 #
-# This file contains the basic CMake setup of the ASCMatrixgen project. Targets
+# This file contains the basic CMake setup of the Matrixgen project. Targets
 # are defined in 'src/CMakeLists.txt'.
 
 ## 1. Prologue
@@ -14,7 +14,7 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
 ## 2. Project & Subdirectories
 ## --------------------------
-project(ASCMatrixgen
+project(Matrixgen
   VERSION 0.0.1
   LANGUAGES CXX)
 
@@ -35,6 +35,6 @@ endif()
 find_package(CMakeshift 3.4 REQUIRED)
 include(CMakeshift/InstallSimpleLibraryPackage)
 cmakeshift_install_simple_library_package(
-  EXPORT ASCMatrixgenTargets
+  EXPORT MatrixgenTargets
   VERSION_COMPATIBILITY SameMajorVersion
-  CONFIG_TEMPLATE "cmake/ASCMatrixgenConfig.cmake.in")
+  CONFIG_TEMPLATE "cmake/MatrixgenConfig.cmake.in")

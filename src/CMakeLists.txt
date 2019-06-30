@@ -1,4 +1,4 @@
-## Project: ASCMatrixgen
+## Project: Matrixgen
 ## Target: matrixgen
 ## Author: Stanislaw Hüll
 
@@ -33,7 +33,7 @@ install(
     DESTINATION "include")
 install(
     TARGETS matrixgen
-    EXPORT ASCMatrixgenTargets
+    EXPORT MatrixgenTargets
     ARCHIVE DESTINATION "lib"
     LIBRARY DESTINATION "lib"
     RUNTIME DESTINATION "bin"

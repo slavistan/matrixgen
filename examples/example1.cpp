@@ -26,7 +26,7 @@ int main()
       const std::array<int, 2>& matrixEntryCoords,
       const std::array<int, 3>& nodeCoords,
       const std::array<int, 3>& neighborCoords){
-    if(matrixEntryCoords[0] == matrixEntryCoords[1]) return -1;
+    if(matrixEntryCoords[0] == matrixEntryCoords[1]) { return -1; }
     return matrixEntryCoords[0] + 1;
   };
 
