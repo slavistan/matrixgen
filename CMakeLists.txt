@@ -1,25 +1,24 @@
+# Project: ASCMatrixgen
+# Author: Stanislaw Hüll
+#
+# This file contains the basic CMake setup of the ASCMatrixgen project. Targets
+# are defined in 'src/CMakeLists.txt'.
+
+## 1. Prologue
+## ---------------------------------
 cmake_minimum_required(VERSION 3.12)
 
-project(matrixgen VERSION 0.0.1)
-
-set(CMAKE_CXX_STANDARD 20)            # set target's default C++ standard
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # generate a compilation database
+set(CMAKE_DISABLE_SOURCE_CHANGES ON)
+set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
-#############
-# Project Targets
-############
+## 2. Project & Subdirectories
+## --------------------------
+project(ASCMatrixgen
+  VERSION 0.0.1
+  LANGUAGES CXX)
 
-find_package(Eigen3)
-
-add_library(matrixgen INTERFACE)
-target_include_directories(matrixgen 
-  INTERFACE
-    "${PROJECT_SOURCE_DIR}/include"
-)
-target_compile_features(matrixgen INTERFACE cxx_std_20)
-target_link_libraries(matrixgen INTERFACE
-  Eigen3::Eigen
-)
+add_subdirectory(src)
 
 option(BUILD_TESTS "Build tests" ON)
 if(BUILD_TESTS)
@@ -31,9 +30,11 @@ if(BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
 
-# define alias so we can use the qualified name everywhere
-add_library(${PROJECT_NAME}::matrixgen ALIAS matrixgen)
-
-install(
-    DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
-    DESTINATION "include")
+## 3. Install
+## -----------------------------
+find_package(CMakeshift 3.4 REQUIRED)
+include(CMakeshift/InstallSimpleLibraryPackage)
+cmakeshift_install_simple_library_package(
+  EXPORT ASCMatrixgenTargets
+  VERSION_COMPATIBILITY SameMajorVersion
+  CONFIG_TEMPLATE "cmake/ASCMatrixgenConfig.cmake.in")
