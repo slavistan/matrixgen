@@ -1,0 +1,14 @@
+# Backup module path.
+set(@PROJECT_NAME@_ORIGINAL_CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}")
+
+# Find all dependencies.
+include(CMakeFindDependencyMacro)
+find_dependency(CMakeshift 3.4 QUIET REQUIRED)
+find_dependency(Eigen3 QUIET REQUIRED)
+# TODO: add additional public dependencies here
+
+# Restore original module path.
+set(CMAKE_MODULE_PATH "${@PROJECT_NAME@_ORIGINAL_CMAKE_MODULE_PATH}")
+
+# Import targets.
+include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
