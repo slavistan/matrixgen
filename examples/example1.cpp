@@ -14,25 +14,28 @@ int main()
   }};
 
   // Choose a function to compute the matrix's values aka. the weights of the adjacency matrix. The function shall
-  // accept three arguments:
+  // be compatible with either of the following call syntaxes:
   //
-  // 1. a 'std::array<int, 2>' corresp. to the matrix entry's coordinates (i, j)
-  // 2. a 'std::array<int, 3>' corresp. to the node's coordinates for which the adjacency pattern is generated
-  // 3. a 'std::array<int, 3>' corresp. to the neighboring node's coordinates
+  // 1. Take no argument.
+  //  foo ()
   //
-  // We choose a function which sets all diagonal elements stemming from the {{0, 0, 0}} offset in the stencil
-  // to -1 while all non-diagonals are set to their row's index (starting at 1).
-  auto computeValue = [](
-      const std::array<int, 2>& matrixEntryCoords,
-      const std::array<int, 3>& nodeCoords,
-      const std::array<int, 3>& neighborCoords){
-    if(matrixEntryCoords[0] == matrixEntryCoords[1]) { return -1; }
-    return matrixEntryCoords[0] + 1;
-  };
+  // 2. Take the matrix entry's coordinates as a tuple of (row, column).
+  //  foo (std::array<int, 2>)
+  //
+  // 3. Take the geometric positions of the node in question and its neighbor as tuples of (x, y, z). The node's
+  //    coordinates are passed first.
+  //  foo (std::array<int, 3>, std::array<int, 3>)
+  //
+  // 4. Combination of (2) and (3). First the matrix entry's coordinates are passed, then the nodes' geometric
+  //    positions.
+  //  foo (std::array<int, 2>, std::array<int, 3>, std::array<int, 3>)
+  //
+  // For this example we choose the most simple weight-function returning a constant value.
+  auto weightfn = []() { return 1; };
 
   // Now generate the matrix from the grid's dimensions, the stencil and the weight function. We use a 3x3x1 grid to
   // keep the output small enough for your poor terminal. The grid shall be specified as a 'std::array<int, 3>'.
-  const auto mat = matrixgen::adjmat({{3, 3, 1}}, stencil, computeValue);
+  const auto mat = matrixgen::adjmat({{3, 3, 1}}, stencil, weightfn);
 
   // Print the matrix. Convert to a dense matrix to make the output look cleaner.
   std::cout << std::endl << Eigen::MatrixXd(mat) << std::endl;
