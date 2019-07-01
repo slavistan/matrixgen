@@ -14,7 +14,7 @@ int main()
   }};
 
   // Choose a function to compute the matrix's values aka. the weights of the adjacency matrix. The function shall
-  // be compatible with either of the following call syntaxes:
+  // be compatible with either of the following calls:
   //
   // 1. Take no argument.
   //  foo ()

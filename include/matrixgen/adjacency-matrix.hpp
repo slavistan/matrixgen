@@ -15,9 +15,6 @@ using DiscreteCoords2d = std::array<Index_t, 2>;
 template <typename Index_t = int>
 using DiscreteCoords3d = std::array<Index_t, 3>;
 
-template <typename Scalar_t = int>
-using RealCoords3d = std::array<Scalar_t, 3>;
-
 // Return a node's index within its grid. Counting is always performed in x-then-y-then-z direction.
 template <typename Index_t = int>
 Index_t
@@ -134,8 +131,8 @@ adjmat(
             }
             else {
               static_assert(
-                  !std::is_same<Scalar_t, Scalar_t>(),
-                  "Function computing the weights has incompatible signature.");
+                !std::is_same<Scalar_t, Scalar_t>(),
+                "Function computing the weights has incompatible signature.");
             }
             triplets.push_back(Eigen::Triplet<Scalar_t>{ii, jj, value});
           }
