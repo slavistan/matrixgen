@@ -6,6 +6,8 @@
 #       them from there. I.e. introduce a compilation phase for the headers
 #       allow things like removing todos from the source code.
 # TODO: Implement a version comment for all header files (and maybe generate
+#       them from there. (I.e. introduce a compilation phase for the headers)
+# TODO: Implement a version comment into all header files (and maybe generate
 #       a version #define).
 
 cmake_minimum_required(VERSION 3.14)
