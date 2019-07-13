@@ -19,8 +19,8 @@ using DiscreteCoords3d = std::array<Index_t, 3>;
 template <typename Index_t = int>
 Index_t
 get_node_index(
-    const DiscreteCoords3d<Index_t>& gridDimensions,
-    const DiscreteCoords3d<Index_t>& myCoords) {
+  const DiscreteCoords3d<Index_t>& gridDimensions,
+  const DiscreteCoords3d<Index_t>& myCoords) {
 
   return myCoords[0] +
          myCoords[1] * gridDimensions[0] +
@@ -54,11 +54,11 @@ is_inside_grid(
 }
 
 template <
+  typename Stencil_t,  // TODO: Use a concept
+  typename WeightFn_t, // TODO: Use a concept
   typename Scalar_t = double,
   int STORAGE_ORDER = Eigen::RowMajor,
-  typename Stencil_t,    // TODO: Use a concept
-  typename WeightFn_t, // TODO: Use a concept
-  typename Index_t = int
+  typename Index_t  = int
     >
 Eigen::SparseMatrix<Scalar_t, STORAGE_ORDER, Index_t>
 adjmat(
