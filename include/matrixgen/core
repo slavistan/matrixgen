@@ -1,0 +1,4 @@
+#pragma once
+
+#include <matrixgen/adjacency-matrix.hpp>
+#include <matrixgen/stencil.hpp>
