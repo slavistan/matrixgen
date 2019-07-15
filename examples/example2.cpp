@@ -1,8 +1,7 @@
 #include <array>
 #include <iostream>
 
-#include <matrixgen/adjacency-matrix.hpp>
-#include <matrixgen/stencil.hpp>
+#include <matrixgen/core>
 
 int main()
 {
