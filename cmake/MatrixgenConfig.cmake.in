@@ -7,8 +7,6 @@ find_dependency(CMakeshift 3.4)
 find_dependency(MS-GSL)
 find_dependency(Eigen3 3.3)
 
-# TODO: add additional public dependencies here
-
 # Restore original module path.
 set(CMAKE_MODULE_PATH "${@PROJECT_NAME@_ORIGINAL_CMAKE_MODULE_PATH}")
 
