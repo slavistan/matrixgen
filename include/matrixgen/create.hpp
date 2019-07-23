@@ -49,32 +49,58 @@ struct Create<Eigen::Matrix<EigenScalar_t, ROWS, COLS, OPTIONS, MAXROWS, MAXCOLS
     auto denseMat = Matrix_t(numRows, numCols);
     for(uint32_t row = 0; row < numRows; ++row) {
       for(uint32_t col = 0; col < numCols; ++col) {
-         denseMat(row, col) = (EigenScalar_t)list[row * numCols + col];
+         denseMat(row, col) = list[row * numCols + col];
       }
     }
     return denseMat;
   }
 };
-//  
-//template <
-//  typename EigenScalar_t,
-//  int EigenAlignment,
-//  typename EigenIndex_t
-//    >
-//struct Create<Eigen::SparseMatrix<EigenScalar_t, EigenAlignment, EigenIndex_t>> {
-//
-//  using Matrix_t = Eigen::SparseMatrix<EigenScalar_t, Eigen::RowMajor, EigenIndex_t>;
-//
-//  Matrix_t
-//  create(uint32_t numRows, uint32_t numCols, std::initializer_list<EigenScalar_t> list) {
-//
-//    auto denseMat = Eigen::Matrix<EigenScalar_t, Eigen::Dynamic, Eigen::Dynamic>(numRows, numCols);
-//    for(uint32_t row = 0; row < numRows; ++row) {
-//      for(uint32_t col = 0; col < numCols; ++col) {
-//         
-//      }
-//    }
-//  }
+
+/**
+ * \brief Create SparseEigen::Matrix objects
+ *
+ * Usage:
+ *
+ * using SparseMatrix_t = Eigen::SparseMatrix<double, Eigen::RowMajor>;
+ * auto myMatrix = matrixgen::create<SparseMatrix_t>(3, 2,
+ *     { 3.14,   0,
+ *          0, 1.1,
+ *        9.2,   0 });
+ *
+ * std::cout << myMatrix << std::endl;
+ *
+ * Returned sparse matrices are not compressed.
+ */
+template <
+  typename EigenScalar_t,
+  int ALIGNMENT,
+  typename EigenIndex_t
+    >
+struct Create<Eigen::SparseMatrix<EigenScalar_t, ALIGNMENT, EigenIndex_t>> {
+
+  using Matrix_t = Eigen::SparseMatrix<EigenScalar_t, ALIGNMENT, EigenIndex_t>;
+
+  static
+  Matrix_t
+  create(uint32_t numRows, uint32_t numCols, const std::vector<EigenScalar_t>& list) {
+
+    // Create a dense matrix, feed it the values and from it create a sparse view.
+    auto denseMat = Eigen::Matrix<
+        EigenScalar_t,
+        Eigen::Dynamic,
+        Eigen::Dynamic,
+        ALIGNMENT>(numRows, numCols);
+
+    for(uint32_t row = 0; row < numRows; ++row) {
+      for(uint32_t col = 0; col < numCols; ++col) {
+         denseMat(row, col) = list[row * numCols + col];
+      }
+    }
+
+    Matrix_t outmatrix = denseMat.sparseView();
+    return outmatrix;
+  }
+};
 
 } // namespace matrixgen::implementation
 

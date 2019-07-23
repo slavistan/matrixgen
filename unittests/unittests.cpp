@@ -9,12 +9,15 @@
 
 #include <matrixgen/core>
 
-#include <Eigen/Core>
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
 
 TEMPLATE_TEST_CASE("Matrices are created", "[create]", double, float, int32_t, int64_t) {
 
   using DenseColMajMat_t = Eigen::Matrix<TestType, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
   using DenseRowMajMat_t = Eigen::Matrix<TestType, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+  using SparseRowMajMat_t = Eigen::SparseMatrix<TestType, Eigen::RowMajor>;
+  using SparseColMajMat_t = Eigen::SparseMatrix<TestType, Eigen::ColMajor>;
 
   /**
    * Create a reference matrix by hand against we'll compare the test objects.
@@ -35,19 +38,20 @@ TEMPLATE_TEST_CASE("Matrices are created", "[create]", double, float, int32_t, i
 
   SECTION("Dense matrices work for row-major and col-major layouts.")
   {
-
   const auto myMatrix = matrixgen::create<DenseColMajMat_t>(rows, cols, elems);
   const auto myMatrix2 = matrixgen::create<DenseRowMajMat_t>(rows, cols, elems);
 
   REQUIRE(referenceMat == myMatrix);
   REQUIRE(referenceMat == myMatrix2);
   }
-//  std::cout << myMatrix << std::endl;
-//  using DenseMatrix2_t = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-//  auto myMatrix2 = matrixgen::create<DenseMatrix2_t>(3, 2,
-//      { 3.14,   0,
-//           0, 1.1,
-//         9.2,   0 });
-//  std::cout << myMatrix2 << std::endl;
-//  (void)myMatrix;
+
+  SECTION("Sparse matrices work for row-major and col-major layouts.")
+  {
+  const auto myMatrix = matrixgen::create<SparseRowMajMat_t>(rows, cols, elems);
+  const auto myMatrix2 = matrixgen::create<SparseColMajMat_t>(rows, cols, elems);
+
+  // Convert to dense matrix so that we may use operator==
+  REQUIRE(referenceMat == DenseRowMajMat_t(myMatrix));
+  REQUIRE(referenceMat == DenseRowMajMat_t(myMatrix2));
+  }
 }
