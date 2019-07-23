@@ -21,6 +21,14 @@ struct Create {};
  * \brief Create Eigen::Matrix objects
  *
  * Usage:
+ *
+ * using DenseMatrix_t = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
+ * auto myMatrix = matrixgen::create<DenseMatrix_t>(3, 2,
+ *     { 3.14,   0,
+ *          0, 1.1,
+ *        9.2,   0 });
+ *
+ * std::cout << myMatrix << std::endl;
  */
 template <
   typename EigenScalar_t,
@@ -41,7 +49,7 @@ struct Create<Eigen::Matrix<EigenScalar_t, ROWS, COLS, OPTIONS, MAXROWS, MAXCOLS
     auto denseMat = Matrix_t(numRows, numCols);
     for(uint32_t row = 0; row < numRows; ++row) {
       for(uint32_t col = 0; col < numCols; ++col) {
-         denseMat(row, col) = list[row * numCols + col];
+         denseMat(row, col) = (EigenScalar_t)list[row * numCols + col];
       }
     }
     return denseMat;
@@ -79,8 +87,15 @@ namespace matrixgen {
  *     numRows, NumCols,
  *     { 3.14, 2.71, .. dense list of all elements .., 0.71 });
  *
+ * The list type must match the matrix's scalar type. Elements are parsed in
+ * row-major order (row-by-row starting from the top-left element) irrespective
+ * of the output matrix's data layout.
+ *
  * This function is a simple dispatcher for the chosen matrix type. See the
  * specialization for details.
+ *
+ * TODO: Allow user to create a float matrix from a double list etc. Seems like
+ *       all that's needed is a little template woo-woo.
  */
 template <
   typename OutMatrix_t,
