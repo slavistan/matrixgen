@@ -4,8 +4,8 @@
  */
 #pragma once
 
-#include <Eigen/Sparse>
 #include <Eigen/Dense>
+#include <Eigen/Sparse>
 #include <gsl/gsl_assert>
 
 #include <initializer_list>
