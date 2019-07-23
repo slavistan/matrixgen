@@ -6,7 +6,7 @@
 
 ## 1. Prologue
 ## ---------------------------------
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.14)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # generate a compilation database
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
@@ -22,13 +22,15 @@ add_subdirectory(src)
 
 option(BUILD_TESTS "Build tests" ON)
 if(BUILD_TESTS)
-    add_subdirectory(test)
+  add_subdirectory(unittests)
 endif()
 
 option(BUILD_EXAMPLES "Build examples" ON)
 if(BUILD_EXAMPLES)
-    add_subdirectory(examples)
+  add_subdirectory(examples)
 endif()
+
+add_subdirectory(documentation)
 
 ## 3. Install
 ## -----------------------------
