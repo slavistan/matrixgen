@@ -14,8 +14,10 @@ Checks: >
   -llvm-namespace-comment,
   -llvm-header-guard,
   misc-*,
+  -misc-non-private-member-variables-in-classes,
   modernize-*,
   -modernize-return-braced-init-list,
+  -modernize-use-nodiscard,
   performance-*,
   readability-*,
   -readability-magic-numbers
@@ -117,6 +119,8 @@ CheckOptions:
     value:           '_t'
   - key:             readability-identifier-naming.TypeAliasCase
     value:           CamelCase
+  - key:             readability-identifier-naming.TypeAliasSuffix
+    value:           '_t'
   - key:             readability-identifier-naming.TypedefCase
     value:           CamelCase
   - key:             readability-identifier-naming.TypeTemplateParameterCase
