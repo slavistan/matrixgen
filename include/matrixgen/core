@@ -2,3 +2,4 @@
 
 #include <matrixgen/adjacency-matrix.hpp>
 #include <matrixgen/stencil.hpp>
+#include <matrixgen/create.hpp>

@@ -12,8 +12,13 @@
 
 cmake_minimum_required(VERSION 3.14)
 
-find_package(CMakeshift 3.4 REQUIRED)
-find_package(Eigen3 REQUIRED)
+find_package( CMakeshift 3.4 REQUIRED )
+find_package( MS-GSL REQUIRED )
+find_package( Eigen3 3.3 REQUIRED )
+# These might be needed at some point
+# find_package( UMESIMD REQUIRED )
+# find_package( Boost REQUIRED )
+# find_package( TBB REQUIRED )
 
 add_library(matrixgen INTERFACE)
 
@@ -28,6 +33,10 @@ target_compile_features(matrixgen
 target_link_libraries(matrixgen
   INTERFACE
     Eigen3::Eigen
+    MS-GSL::MS-GSL
+    # Boost::headers
+    # UMESIMD::UMESIMD
+    # TBB::tbb
 )
 
 install(
