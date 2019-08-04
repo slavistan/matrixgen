@@ -13,7 +13,8 @@
 namespace matrixgen::implementation {
 
 template <
-  typename OutMatrix_t
+  typename OutMatrix_t,
+  typename ListElem_t
     >
 struct Create {};
 
@@ -36,20 +37,21 @@ template <
   int32_t COLS,
   int32_t OPTIONS,
   int32_t MAXROWS,
-  int32_t MAXCOLS
+  int32_t MAXCOLS,
+  typename ListElem_t
     >
-struct Create<Eigen::Matrix<EigenScalar_t, ROWS, COLS, OPTIONS, MAXROWS, MAXCOLS>> {
+struct Create<Eigen::Matrix<EigenScalar_t, ROWS, COLS, OPTIONS, MAXROWS, MAXCOLS>, ListElem_t> {
 
   using Matrix_t = Eigen::Matrix<EigenScalar_t, ROWS, COLS, OPTIONS, MAXROWS, MAXCOLS>;
 
   static
   Matrix_t
-  create(uint32_t numRows, uint32_t numCols, const std::vector<EigenScalar_t>& list) {
+  create(uint32_t numRows, uint32_t numCols, std::initializer_list<ListElem_t> list) {
 
     auto denseMat = Matrix_t(numRows, numCols);
     for(uint32_t row = 0; row < numRows; ++row) {
       for(uint32_t col = 0; col < numCols; ++col) {
-         denseMat(row, col) = list[row * numCols + col];
+         denseMat(row, col) = static_cast<ListElem_t>(*std::next(list.begin(), row * numCols + col));
       }
     }
     return denseMat;
@@ -74,15 +76,16 @@ struct Create<Eigen::Matrix<EigenScalar_t, ROWS, COLS, OPTIONS, MAXROWS, MAXCOLS
 template <
   typename EigenScalar_t,
   int ALIGNMENT,
-  typename EigenIndex_t
+  typename EigenIndex_t,
+  typename ListElem_t
     >
-struct Create<Eigen::SparseMatrix<EigenScalar_t, ALIGNMENT, EigenIndex_t>> {
+struct Create<Eigen::SparseMatrix<EigenScalar_t, ALIGNMENT, EigenIndex_t>, ListElem_t> {
 
   using Matrix_t = Eigen::SparseMatrix<EigenScalar_t, ALIGNMENT, EigenIndex_t>;
 
   static
   Matrix_t
-  create(uint32_t numRows, uint32_t numCols, const std::vector<EigenScalar_t>& list) {
+  create(uint32_t numRows, uint32_t numCols, std::initializer_list<ListElem_t> list) {
 
     // Create a dense matrix, feed it the values and from it create a sparse view.
     auto denseMat = Eigen::Matrix<
@@ -93,7 +96,7 @@ struct Create<Eigen::SparseMatrix<EigenScalar_t, ALIGNMENT, EigenIndex_t>> {
 
     for(uint32_t row = 0; row < numRows; ++row) {
       for(uint32_t col = 0; col < numCols; ++col) {
-         denseMat(row, col) = list[row * numCols + col];
+         denseMat(row, col) = static_cast<EigenScalar_t>(*(std::next(list.begin(), row * numCols + col)));
       }
     }
 
@@ -120,21 +123,19 @@ namespace matrixgen {
  * This function is a simple dispatcher for the chosen matrix type. See the
  * specialization for details.
  *
- * TODO: Allow user to create a float matrix from a double list etc. Seems like
- *       all that's needed is a little template woo-woo.
  */
 template <
   typename OutMatrix_t,
-  typename Scalar_t = double
+  typename ListElem_t
     >
 OutMatrix_t create(
     uint32_t numRows,
     uint32_t numCols,
-    const std::vector<Scalar_t>& list) {
+    std::initializer_list<ListElem_t> list) {
 
   Expects( numRows * numCols == list.size() );
 
-  return implementation::Create<OutMatrix_t>::create(numRows, numCols, list);
+  return implementation::Create<OutMatrix_t, ListElem_t>::create(numRows, numCols, list);
 }
 
 }
