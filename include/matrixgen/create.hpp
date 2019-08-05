@@ -9,6 +9,7 @@
 #include <gsl/gsl_assert>
 
 #include <initializer_list>
+#include <utility>
 
 namespace matrixgen::implementation {
 
@@ -139,7 +140,8 @@ OutMatrix_t create(
     uint32_t numCols,
     std::initializer_list<ListElem_t> list) {
 
-  return create(numRows, numCols, list.begin(), list.end());
+  using Iter_t = typename std::initializer_list<ListElem_t>::const_iterator;
+  return implementation::Create<OutMatrix_t, Iter_t>::create(numRows, numCols, list.begin(), list.end());
 }
 
 /**
