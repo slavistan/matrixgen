@@ -38,8 +38,8 @@ TEMPLATE_TEST_CASE("Matrices are created", "[create]", double, float, int32_t, i
 
   SECTION("Dense matrices work for row-major and col-major layouts.")
   {
-  const auto myMatrix = matrixgen::create<DenseColMajMat_t>(rows, cols, elems);
-  const auto myMatrix2 = matrixgen::create<DenseRowMajMat_t>(rows, cols, elems);
+  const auto myMatrix = matrixgen::create<DenseColMajMat_t>(rows, cols, elems.begin(), elems.end());
+  const auto myMatrix2 = matrixgen::create<DenseRowMajMat_t>(rows, cols, elems.begin(), elems.end());
 
   REQUIRE(referenceMat == myMatrix);
   REQUIRE(referenceMat == myMatrix2);
@@ -47,8 +47,8 @@ TEMPLATE_TEST_CASE("Matrices are created", "[create]", double, float, int32_t, i
 
   SECTION("Sparse matrices work for row-major and col-major layouts.")
   {
-  const auto myMatrix = matrixgen::create<SparseRowMajMat_t>(rows, cols, elems);
-  const auto myMatrix2 = matrixgen::create<SparseColMajMat_t>(rows, cols, elems);
+  const auto myMatrix = matrixgen::create<SparseRowMajMat_t>(rows, cols, elems.begin(), elems.end());
+  const auto myMatrix2 = matrixgen::create<SparseColMajMat_t>(rows, cols, elems.begin(), elems.end());
 
   // Convert to dense matrix so that we may use operator==
   REQUIRE(referenceMat == DenseRowMajMat_t(myMatrix));
