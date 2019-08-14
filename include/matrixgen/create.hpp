@@ -1,7 +1,3 @@
-/**
- * \file
- * \author Stanislaw Hüll
- */
 #pragma once
 
 #include <Eigen/Dense>
@@ -20,21 +16,7 @@ template <
 struct Create {};
 
 /**
- * \brief Implementation of 'create' for 'Eigen::Matrix' objects
- *
- * Usage (see dispatcher below):
- *
- *   using DenseMatrix_t = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
- *   # Pass elements via init list
- *   auto myMatrix = matrixgen::create<DenseMatrix_t>(3, 2,
- *       { 3.14,   0,
- *            0, 1.1,
- *          9.2,   0 });
- *
- *   # Pass elements via a range
- *   auto yourMatrix = matrixgen::create<DenseMatrix_t>(3, 2, elems.begin(), elems.end());
- *
- *   std::cout << myMatrix << std::endl << yourMatrix << std::endl;
+ * Implementation of 'matrixgen::create' for 'Eigen::Matrix' objects.
  */
 template <
   typename EigenScalar_t,
@@ -66,15 +48,10 @@ struct Create<Eigen::Matrix<EigenScalar_t, ROWS, COLS, OPTIONS, MAXROWS, MAXCOLS
 };
 
 /**
- * \brief Implementation of 'create' for 'Eigen::SparseMatrix' objects
+ * Implementation of 'matrixgen::create' for 'Eigen::SparseMatrix' objects.
  *
- * Usage as above except for the matrix type:
- *
- *   using SparseMatrix_t = Eigen::SparseMatrix<double, Eigen::RowMajor>;
- *   # ...
- *
- * Returned sparse matrices are not compressed. Call method 'makeCompressed' to
- * compress.
+ * NOTE: Returned sparse matrices are not compressed. Call method
+ *       'makeCompressed' on the object to compress it.
  */
 template <
   typename EigenScalar_t,
@@ -119,16 +96,25 @@ namespace matrixgen {
 /**
  * Create matrices of various types using a simple syntax:
  *
- * auto myMatrix = matrixgen::create<MyMatrixType>(
- *     numRows, NumCols,
- *     { 3.14, 2.71, .. dense list of all elements .., 0.71 });
+ * ****************************************************************************
+ * #include <matrixgen/core>
  *
- * The list type shall be convertible to the scalar type. Elements are parsed in
- * row-major order (row-by-row starting from the top-left element) irrespective
- * of the output matrix's data layout.
+ * int main() {
+ *   using MyMatrixType_t = Eigen::SparseMatrix<double>;
+ *   auto myMatrix = matrixgen::create<MyMatrixType_t>(3, 2,
+ *       { 3.14, 2.71 ,
+ *         4.01, 0.00 ,
+ *         0.00, 1.01 });
+ *   // Use 'myMatrix'.
+ * }
+ * ****************************************************************************
+ *
+ * The list element's type shall be convertible to the scalar type. Elements are
+ * fed into the matrix in row-major order (row-by-row starting from the top-left
+ * element) irrespective of the output matrix's data layout.
  *
  * This function is a simple dispatcher for the chosen matrix type. See the
- * specializations for details and code examples.
+ * specializations above for available matrix types.
  *
  */
 template <
@@ -159,4 +145,5 @@ OutMatrix_t create(
 
   return implementation::Create<OutMatrix_t, InputIter_t>::create(numRows, numCols, first, last);
 }
-}
+
+} // namespace matrixgen::implementation

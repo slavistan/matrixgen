@@ -41,4 +41,4 @@ const std::array<std::array<Scalar_t, 3>, 27> STENCIL<27, Scalar_t> =
     { -1, -1, -1}, { -1, -1,  1}, { -1,  1, -1}, { -1,  1,  1},
     {  1, -1, -1}, {  1, -1,  1}, {  1,  1, -1}, {  1,  1,  1}}};
 
-} // matrixgen
+} // namespace matrixgen

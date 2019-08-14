@@ -1,66 +1,47 @@
-/**
- * \file
- * \author Stanislaw Hüll
- * \brief Unit tests
- */
-
-#define CATCH_CONFIG_MAIN
-#include <catch2/catch.hpp>
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
 
 #include <matrixgen/core>
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-TEMPLATE_TEST_CASE("Matrices are created", "[create]", double, float, int32_t, int64_t) {
+using Scalar_t = double;
+using DenseRowMajMat_t  = Eigen::Matrix<Scalar_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
-  using DenseColMajMat_t = Eigen::Matrix<TestType, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
-  using DenseRowMajMat_t = Eigen::Matrix<TestType, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-  using SparseRowMajMat_t = Eigen::SparseMatrix<TestType, Eigen::RowMajor>;
-  using SparseColMajMat_t = Eigen::SparseMatrix<TestType, Eigen::ColMajor>;
+using matrixgen::create;
+
+#define Types                                                               \
+  Eigen::Matrix<Scalar_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>, \
+  Eigen::Matrix<Scalar_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, \
+  Eigen::SparseMatrix<Scalar_t, Eigen::RowMajor>,                           \
+  Eigen::SparseMatrix<Scalar_t, Eigen::ColMajor>,                           \
+  Eigen::SparseMatrix<Scalar_t, Eigen::ColMajor, int64_t>
+
+TEST_CASE_TEMPLATE("create", MatType_t, Types) {
 
   /**
-   * Create a reference matrix by hand against we'll compare the test objects.
-   * Use the row-major layout used by 'matrixgen::create' and extract the values
-   * into a vector for later usage.
+   * Create a reference matrix by hand with which to compare the test objects.
    */
   const auto rows = 3;
   const auto cols = 2;
-  auto referenceMat = DenseRowMajMat_t(rows, cols);
-  referenceMat <<
-    3, 0,
-    0, 1,
-    9, 4;
+  auto m = DenseRowMajMat_t(rows, cols);
+  m << 3, 0,
+       0, 1,
+       9, 4;
 
-  const auto elems = std::vector<TestType>(
-      referenceMat.data(),
-      std::next(referenceMat.data(), rows * cols));
+  MatType_t subject;
 
-  SECTION("Dense matrices work for row-major and col-major layouts.")
-  {
-  const auto myMatrix = matrixgen::create<DenseColMajMat_t>(rows, cols, elems.begin(), elems.end());
-  const auto myMatrix2 = matrixgen::create<DenseRowMajMat_t>(rows, cols, elems.begin(), elems.end());
-  const auto myMatrix3 = matrixgen::create<DenseColMajMat_t>(rows, cols, {3, 0, 0, 1, 9, 4});
-  const auto myMatrix4 = matrixgen::create<DenseRowMajMat_t>(rows, cols, {3, 0, 0, 1, 9, 4});
-
-  REQUIRE(referenceMat == myMatrix);
-  REQUIRE(referenceMat == myMatrix2);
-  REQUIRE(referenceMat == myMatrix3);
-  REQUIRE(referenceMat == myMatrix4);
+  SUBCASE("Elements by range") {
+    subject = create<MatType_t>(
+        rows, cols,
+        m.data(),
+        std::next(m.data(), rows * cols));
   }
 
-  SECTION("Sparse matrices work for row-major and col-major layouts.")
-  {
-
-  const auto myMatrix = matrixgen::create<SparseRowMajMat_t>(rows, cols, elems.begin(), elems.end());
-  const auto myMatrix2 = matrixgen::create<SparseColMajMat_t>(rows, cols, elems.begin(), elems.end());
-  const auto myMatrix3 = matrixgen::create<SparseRowMajMat_t>(rows, cols, {3, 0, 0, 1, 9, 4});
-  const auto myMatrix4 = matrixgen::create<SparseColMajMat_t>(rows, cols, {3, 0, 0, 1, 9, 4});
-
-  // Convert to dense matrix so that we may use operator==
-  REQUIRE(referenceMat == DenseRowMajMat_t(myMatrix));
-  REQUIRE(referenceMat == DenseRowMajMat_t(myMatrix2));
-  REQUIRE(referenceMat == DenseRowMajMat_t(myMatrix3));
-  REQUIRE(referenceMat == DenseRowMajMat_t(myMatrix4));
+  SUBCASE("Elements by list") {
+    subject = create<MatType_t>(rows, cols, {3, 0, 0, 1, 9, 4});
   }
+
+  CHECK(m == DenseRowMajMat_t(subject));
 }

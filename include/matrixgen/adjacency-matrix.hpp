@@ -69,8 +69,8 @@ is_inside_grid(
  * chosed according to the signature of this function template.
  */
 template <
-  typename Stencil_t,  // TODO: Use a concept eventually
-  typename WeightFn_t, // TODO: Use a concept eventually
+  typename Stencil_t,
+  typename WeightFn_t,
   typename Scalar_t = double,
   int STORAGE_ORDER = Eigen::RowMajor,
   typename Index_t  = int
@@ -107,8 +107,10 @@ adjmat(
     for(auto yy = 0; yy < gridDimensions[1]; ++yy){
       for(auto xx = 0; xx < gridDimensions[0]; ++xx){
         /**
-         * for each neighboring node, if it's inside the grid compute the entry's
+         * For each neighboring node, if it's inside the grid compute the entry's
          * coordinates (i,j) and store it away as triplet.
+         *
+         * TODO: How to handle specific boundary conditions here?
          */
         for(const auto& offset: stencil){
           const auto myCoords = DiscreteCoords3d_t<Index_t>{{xx, yy, zz}};
@@ -126,18 +128,21 @@ adjmat(
 
             /**
              * Select the correct implementation depending on the
-             * weight-function's signature
+             * weight-function's signature.
              */
             Scalar_t value;
-            // WeightFn takes no arguments (e.g. constant weights)
+
+            // A. WeightFn takes no arguments (e.g. constant weights)
             if constexpr (std::is_invocable_r<Scalar_t, WeightFn_t>()) {
               value = static_cast<Scalar_t>(computeValue());
             }
-            // WeighFn computes values from the matrix element's positions (row, column)
+            // B. WeighFn computes values from the matrix element's positions
+            //    (row, column).
             else if constexpr (std::is_invocable_r<Scalar_t, WeightFn_t, std::array<int, 2>>()) {
               value = static_cast<Scalar_t>(computeValue({{ii, jj}}));
             }
-            // WeightFn computes values from the geometric position of the node and its neighbor
+            // C. WeightFn computes values from the geometric position of the
+            //    and its neighbor node.
             else if constexpr (std::is_invocable_r<
                                 Scalar_t,
                                 WeightFn_t,
@@ -146,8 +151,8 @@ adjmat(
                                >()) {
               value = static_cast<Scalar_t>(computeValue(myCoords, neighborCoords));
             }
-            // WeightFn computes values from the matrix element's position and geometric positions of the node and its
-            // neighbor
+            // D. WeightFn computes values from the matrix element's position
+            //    and geometric positions of the node and its neighbor.
             else if constexpr (std::is_invocable_r<
                                 Scalar_t,
                                 WeightFn_t,
@@ -157,9 +162,11 @@ adjmat(
                                  >()) {
               value = static_cast<Scalar_t>(computeValue({{ii, jj}}, myCoords, neighborCoords));
             }
+            // E. WeightFn had too much to drink again.
             else {
               static_assert(
-                // TODO: Is there a non-hacky solution for this?
+                // TODO: Is there a non-hacky solution to this? Something like
+                //       std::abort_compilation("Error: ... ");
                 !std::is_same<Scalar_t, Scalar_t>(),
                 "Function computing the weights has incompatible signature.");
             }
