@@ -70,7 +70,7 @@ is_inside_grid(
  */
 template <
   typename Stencil_t,
-  typename WeightFn_t,
+  typename WeightFn_t, // TODO: Provide a default weightfn
   typename Scalar_t = double,
   int STORAGE_ORDER = Eigen::RowMajor,
   typename Index_t  = int
@@ -109,8 +109,6 @@ adjmat(
         /**
          * For each neighboring node, if it's inside the grid compute the entry's
          * coordinates (i,j) and store it away as triplet.
-         *
-         * TODO: How to handle specific boundary conditions here?
          */
         for(const auto& offset: stencil){
           const auto myCoords = DiscreteCoords3d_t<Index_t>{{xx, yy, zz}};
@@ -119,6 +117,14 @@ adjmat(
             myCoords[1] + offset[1],
             myCoords[2] + offset[2]
           }};
+
+          /**
+           * TODO: Handle boundary conditions here.
+           *       Should 'is_inside_grid' and 'get_matrix_entry_coordinates'
+           *       be passed as a lambda so that the caller may implement
+           *       arbitrary boundary conditions himself?
+           * if ( userCall.has_value() ) { value == *userCall(); }
+           */
           if(is_inside_grid(gridDimensions, neighborCoords)){
             const auto [ii, jj] = get_matrix_entry_coordinates(
               gridDimensions,
