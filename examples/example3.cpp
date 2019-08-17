@@ -1,4 +1,3 @@
-// CONTINUEHERE: Implement presets.hpp
 #include <array>
 #include <iostream>
 

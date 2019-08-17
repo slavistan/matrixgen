@@ -1,6 +1,5 @@
 #pragma once
 
 #include <matrixgen/adjacency-matrix.hpp>
-#include <matrixgen/stencil.hpp>
 #include <matrixgen/create.hpp>
 #include <matrixgen/presets.hpp>
