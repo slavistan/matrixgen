@@ -22,6 +22,16 @@ find_package( Eigen3 3.3 REQUIRED )
 
 add_library(matrixgen INTERFACE)
 
+# Configure MS-GSL's contracts. This macro is required to generate a proper
+# runtime error message for a contract violation. Otherwise a simple
+# std::terminate will be reported without context information.
+# TODO: Make sure that absolutely no code is generated in release mode.
+#       The MS-GSL's implementation suggests that something is always left
+#       irrespective of any macro.
+target_compile_options(matrixgen
+  INTERFACE
+  $<$<CONFIG:Debug>:-DGSL_THROW_ON_CONTRACT_VIOLATION>)
+
 target_include_directories(matrixgen 
   INTERFACE
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>")
