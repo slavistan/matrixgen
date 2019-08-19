@@ -91,7 +91,7 @@ const std::array<DiscreteCoords3d_t<Index_t>, 7> STENCIL<7, Index_t> =
  * Returns a lambda which implements the symmetric 7p stencil.
  */
 template <
-  // TODO Implement boundary conditions
+  auto BC = BOUNDCOND::DIRICHLET,
   typename Index_t = int
     >
 auto stencil7p() {
@@ -106,31 +106,46 @@ auto stencil7p() {
     Expects( coords[0] < gridDimensions[0] );
     Expects( coords[1] < gridDimensions[1] );
     Expects( coords[2] < gridDimensions[2] );
+    static_assert( std::is_same<decltype(BC), BOUNDCOND>() );
 
     /**
-     * Check if we're being called on an inner node. This will be the case
-     * most of the times for any non-trivial matrix. Return iterators to
-     * a predefined static stencil.
+     * Check if we're being called on an inner node in which case the node
+     * a predefined static stencil. This will apply to the overwhelming
+     * majority of nodes for most matrices irrespective of boundary
+     * conditions.
      */
     if (is_inner_node(coords, gridDimensions)) {
       return std::pair {STENCIL<7>.cbegin(), STENCIL<7>.cend()};
     }
+
     /**
-     * For any outer node start out at the full 7p stencil and remove any
-     * offsets which are not compatible with our node's position.
-     * This is a generic implementation suitable for all kinds of grids.
+     * For the outer nodes modify the set of offsets according to our boundary
+     * conditions.
      */
     std::copy(STENCIL<7>.cbegin(), STENCIL<7>.cend(), offsets.begin());
-    const auto end = std::remove_if(offsets.begin(), offsets.end(),
-                // "Remove" any offsets which point outside the grid.
-                // `remove_if` swaps the bad elements to the end of the array.
-                [&coords, &gridDimensions](const auto& offset) {
-                  const auto neighborCoords = coords + offset;
-                  return !is_inside_grid(neighborCoords, gridDimensions);
-                });
+    if constexpr (BC == BOUNDCOND::DIRICHLET) {
+      /**
+       * For any outer node start out at the full 7p stencil and remove any
+       * offsets which are not compatible with our node's position.
+       * This is a generic implementation suitable for all kinds of grids.
+       */
+      const auto end = std::remove_if(offsets.begin(), offsets.end(),
+                  // "Remove" any offsets which point outside the grid.
+                  // `remove_if` swaps the bad elements to the end of the array.
+                  [&coords, &gridDimensions](const auto& offset) {
+                    const auto neighborCoords = coords + offset;
+                    return !is_inside_grid(neighborCoords, gridDimensions);
+                  });
 
-    using Iter_t = typename decltype(offsets)::const_iterator;
-    return std::pair {offsets.cbegin(), static_cast<Iter_t>(end)};
+      using Iter_t = typename decltype(offsets)::const_iterator;
+      return std::pair {offsets.cbegin(), static_cast<Iter_t>(end)};
+    }
+    if constexpr (BC == BOUNDCOND::PERIODIC) {
+      // TODO
+    }
+    if constexpr (BC == BOUNDCOND::NEUMANN) {
+      // TODO
+    }
   };
 }
 
