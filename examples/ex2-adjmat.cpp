@@ -1,7 +1,8 @@
-/**
- * Example displaying the generation of adjacency matrices using a compact
- * syntax. Equivalent to example 1.
- */
+// CONTINUEHERE
+// TODO: Show off 
+//        different boundary conditions --> Stencil also encodes bcs
+//        randomweight
+//        convert to MatrixXd for pretty print
 #include <array>
 #include <iostream>
 

@@ -275,4 +275,6 @@ auto constweight(Scalar_t val = 1) {
   return ([val]() { return static_cast<Scalar_t>(val); });
 }
 
+// TODO: Implement randomweight(seed = 1);
+
 } // namespace matrixgen
