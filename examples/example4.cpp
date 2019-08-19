@@ -8,10 +8,14 @@ int main()
   /**
    * Generate the matrix and use it.
    */
-  using matrixgen::BOUNDCOND;
+  using matrixgen::BC;
+  auto stencil = matrixgen::stencil7p<
+                  BC::DIRICHLET,
+                  BC::PERIODIC,
+                  BC::DIRICHLET>();
   const auto mat = matrixgen::adjmat(
-      {2, 2, 2},
-      matrixgen::stencil7p<BOUNDCOND::PERIODIC>(),
+      {1, 1, 1},
+      stencil,
       matrixgen::constweight(1));
 
   std::cout << std::endl << Eigen::MatrixXd {mat} << std::endl;

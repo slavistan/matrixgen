@@ -13,7 +13,7 @@ namespace matrixgen {
  * Collection of predefined stencil function.
  */
 
-enum class BOUNDCOND {
+enum class BC {
   DIRICHLET,
   NEUMANN,
   PERIODIC
@@ -137,11 +137,13 @@ const std::array<DiscreteCoords3d_t<Index_t>, 7> STENCIL<7, Index_t> =
 /**
  * Returns a lambda which implements the symmetric 7p stencil given a set of
  * boundary conditions.
+ *
+ * TODO: Implement Neumann boundary conditions.
  */
 template <
-  auto XBC = BOUNDCOND::DIRICHLET,
-  auto YBC = BOUNDCOND::DIRICHLET,
-  auto ZBC = BOUNDCOND::DIRICHLET,
+  auto XBC = BC::DIRICHLET,
+  auto YBC = BC::DIRICHLET,
+  auto ZBC = BC::DIRICHLET,
   typename Index_t = int
     >
 auto stencil7p() {
@@ -156,51 +158,95 @@ auto stencil7p() {
     Expects( coords[0] < gridDimensions[0] );
     Expects( coords[1] < gridDimensions[1] );
     Expects( coords[2] < gridDimensions[2] );
-    static_assert( std::is_same<decltype(XBC), BOUNDCOND>() );
+    static_assert( std::is_same<decltype(XBC), BC>() );
 
     /**
      * Check if we're being called on an inner node in which case the node
-     * a predefined static stencil. This will apply to the overwhelming
-     * majority of nodes for most matrices irrespective of boundary
-     * conditions.
+     * exhibits its full adjacency pattern. This will apply to the overwhelming
+     * majority of nodes for most matrices thus we assume this scenario right
+     * away.
      */
     if (is_inner_node(coords, gridDimensions)) {
       return std::pair {STENCIL<7>.cbegin(), STENCIL<7>.cend()};
     }
 
     /**
-     * For the outer nodes modify the set of offsets according to our boundary
+     * For all the outer nodes we start out with the null-offset and add other
+     * offsets according to our position in the grid and the chosen boundary
      * conditions.
      */
-    std::copy(STENCIL<7>.cbegin(), STENCIL<7>.cend(), offsets.begin());
-    if constexpr (XBC == BOUNDCOND::DIRICHLET) {
+    offsets.front() = STENCIL<7>.front();     // add the null offset and ...
+    auto end = std::next(offsets.begin(), 1); // .. keep track of our end ptr.
+    if constexpr (XBC == BC::DIRICHLET) {
       /**
-       * For any outer node start out at the full 7p stencil and remove any
-       * offsets which are not compatible with our node's position.
-       * This is a generic implementation suitable for all kinds of grids.
+       * Add any offset in {(-1, 0, 0), (1, 0, 0)} which points inside the
+       * grid and discard the rest. This implementation is repeated for the
+       * x and y dimensions, respecitvely.
        */
-      const auto end = std::remove_if(offsets.begin(), offsets.end(),
-                  // "Remove" any offsets which point outside the grid.
-                  // `remove_if` swaps the bad elements to the end of the array.
-                  [&coords, &gridDimensions](const auto& offset) {
-                    const auto neighborCoords = coords + offset;
-                    return !is_inside_grid(neighborCoords, gridDimensions);
-                  });
-
-      using Iter_t = typename decltype(offsets)::const_iterator;
-      return std::pair {offsets.cbegin(), static_cast<Iter_t>(end)};
-    }
-    if constexpr (XBC == BOUNDCOND::PERIODIC) {
-      std::transform(offsets.begin(), offsets.end(), offsets.begin(),
+      end = std::copy_if(
+          std::next(STENCIL<7>.cbegin(), 1), // Range over the x-offsets in
+          std::next(STENCIL<7>.cbegin(), 3), // `STENICIL<7>`. See declaration.
+          end,
           [&coords, &gridDimensions](const auto& offset) {
-
+            return is_inside_grid(coords + offset, gridDimensions);
+          });
+    }
+    if constexpr (XBC == BC::PERIODIC) {
+      /**
+       * Periodic boundary conditions are implemented by performing a simple
+       * (multi-dimensional) modulus addition of the offset to the node's
+       * coordinates which maps to the other side of the grid, in case the
+       * offset points outside the grid.
+       */
+      end = std::transform(
+          std::next(STENCIL<7>.cbegin(), 1),
+          std::next(STENCIL<7>.cbegin(), 3),
+          end,
+          [&coords, &gridDimensions](const auto& offset) {
+            // The stencil is supposed to return offsets, thus we subtract
+            // the coordinates after the modplus to obtain what we need.
             return modplus(coords, offset, gridDimensions) - coords;
           });
-      return std::pair {offsets.cbegin(), offsets.cend()};
     }
-    if constexpr (XBC == BOUNDCOND::NEUMANN) {
-      // TODO
+    if constexpr (YBC == BC::DIRICHLET) {
+      end = std::copy_if(
+          std::next(STENCIL<7>.cbegin(), 3),
+          std::next(STENCIL<7>.cbegin(), 5),
+          end,
+          [&coords, &gridDimensions](const auto& offset) {
+            return is_inside_grid(coords + offset, gridDimensions);
+          });
     }
+    if constexpr (YBC == BC::PERIODIC) {
+      end = std::transform(
+          std::next(STENCIL<7>.cbegin(), 3),
+          std::next(STENCIL<7>.cbegin(), 5),
+          end,
+          [&coords, &gridDimensions](const auto& offset) {
+            return modplus(coords, offset, gridDimensions) - coords;
+          });
+    }
+    if constexpr (ZBC == BC::DIRICHLET) {
+      end = std::copy_if(
+          std::next(STENCIL<7>.cbegin(), 5),
+          std::next(STENCIL<7>.cbegin(), 7),
+          end,
+          [&coords, &gridDimensions](const auto& offset) {
+            return is_inside_grid(coords + offset, gridDimensions);
+          });
+    }
+    if constexpr (ZBC == BC::PERIODIC) {
+      end = std::transform(
+          std::next(STENCIL<7>.cbegin(), 5),
+          std::next(STENCIL<7>.cbegin(), 7),
+          end,
+          [&coords, &gridDimensions](const auto& offset) {
+            return modplus(coords, offset, gridDimensions) - coords;
+          });
+    }
+
+    using Iter_t = typename decltype(offsets)::const_iterator;
+    return std::pair {offsets.cbegin(), static_cast<Iter_t>(end)};
   };
 }
 

@@ -92,10 +92,11 @@ template <
     >
 Eigen::SparseMatrix<Scalar_t, STORAGE_ORDER, Index_t>
 adjmat(
-    // TODO: Assert stencil's signature and return type
   const DiscreteCoords3d_t<Index_t> gridDimensions,
   StencilFn_t stencil,
   WeightFn_t computeValue) {
+
+  // TODO: Assert stencil's signature and return type
 
   // The adjacency matrix is a square matrix. Store its height.
   const auto matrixHeight = gridDimensions[0] *
@@ -108,19 +109,15 @@ adjmat(
    * the weight function.
    * We use initialization via Triplets as described here:
    * http://eigen.tuxfamily.org/dox/group__TutorialSparse.html#TutorialSparseFilling
-   *
-   * TODO: Parallelize via tbb. Might have to use different initialization
-   *       scheme or let each thread create its vector of triplets and then
-   *       create a (custom?) range by connecting all the vectors.
-   *       Note that parallelization requires that the lambdas don't carry any
-   *       state.
    */
-  // TODO: I removed the preallocation of memory to avoid passing another
-  //       parameter (the number of nonzeros is unknown, as the stencil is now
-  //       dynamic).
-  // const auto upperLimToCountOfNnz = matrixHeight * std::size(stencil);
   auto triplets = std::vector<Eigen::Triplet<Scalar_t>> {};
-  //triplets.reserve(upperLimToCountOfNnz);
+  // TODO: As the stencil is now dynamically computed for each node there's no
+  //       such thing as a static size of the stencil for me to assume here.
+  //       Hence I removed the call to `triplets.reserve()` and use dynamic
+  //       reallocation via `push_back()`. Implement some option for the user
+  //       to specify an upper limit to the the triplets vector's size.
+  // const auto upperLimToCountOfNnz = matrixHeight * std::size(stencil);
+  // triplets.reserve(upperLimToCountOfNnz);
 
   for(auto zz = 0; zz < gridDimensions[2]; ++zz){
     for(auto yy = 0; yy < gridDimensions[1]; ++yy){
@@ -132,13 +129,13 @@ adjmat(
          */
         const auto myCoords = DiscreteCoords3d_t<Index_t> {xx, yy, zz};
         // TODO: Comment new implementation
-        const auto offset_range = stencil(myCoords, gridDimensions);
-        for(auto offset_it = offset_range.first; offset_it != offset_range.second; ++offset_it){
+        const auto offsetRange = stencil(myCoords, gridDimensions);
+        for(auto offsetIt = offsetRange.first; offsetIt != offsetRange.second; ++offsetIt){
 
           const auto neighborCoords = DiscreteCoords3d_t<Index_t> {
-            myCoords[0] + (*offset_it)[0],
-            myCoords[1] + (*offset_it)[1],
-            myCoords[2] + (*offset_it)[2]
+            myCoords[0] + (*offsetIt)[0],
+            myCoords[1] + (*offsetIt)[1],
+            myCoords[2] + (*offsetIt)[2]
           };
 
           const auto [ii, jj] = get_matrix_entry_coordinates(
