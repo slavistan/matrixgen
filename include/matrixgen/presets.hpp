@@ -3,6 +3,7 @@
 #include <gsl/gsl_assert>
 
 #include <array>
+#include <limits>
 #include <utility>
 #include <vector>
 
@@ -31,6 +32,51 @@ operator+(
     const DiscreteCoords3d_t<Index_t>& b) {
 
   return {a[0] + b[0], a[1] + b[1], a[2] + b[2]};
+}
+
+/**
+ * Element-wise addition of arrays.
+ */
+template <typename Index_t>
+DiscreteCoords3d_t<Index_t> 
+operator-(
+    const DiscreteCoords3d_t<Index_t>& a,
+    const DiscreteCoords3d_t<Index_t>& b) {
+
+  return {a[0] - b[0], a[1] - b[1], a[2] - b[2]};
+}
+
+/**
+ * Modulus which wraps around at 0. Scalar `b` is mapped into the interval
+ * [0; `mod`) if `mod > 0` or (`mod`; 0] if `mod < 0`.
+ *
+ * Used to implement periodic boundary conditions.
+ */
+template <typename Scalar_t>
+Scalar_t
+mod(Scalar_t n, Scalar_t mod) {
+
+  Expects( mod != 0 );
+  static_assert(std::numeric_limits<Scalar_t>::is_signed);
+
+  const auto m = n % mod;
+  if (m >= 0) {
+    return m;
+  }
+
+  return mod + m;
+}
+
+template <typename Index_t>
+DiscreteCoords3d_t<Index_t>
+modplus(
+    const DiscreteCoords3d_t<Index_t>& a,
+    const DiscreteCoords3d_t<Index_t>& b,
+    const DiscreteCoords3d_t<Index_t>& modulus) {
+
+  return {mod((a[0] + b[0]), modulus[0]),
+          mod((a[1] + b[1]), modulus[1]),
+          mod((a[2] + b[2]), modulus[2])};
 }
 
 /**
@@ -141,7 +187,18 @@ auto stencil7p() {
       return std::pair {offsets.cbegin(), static_cast<Iter_t>(end)};
     }
     if constexpr (BC == BOUNDCOND::PERIODIC) {
-      // TODO
+      std::transform(offsets.begin(), offsets.end(), offsets.begin(),
+          [&coords, &gridDimensions](const auto& offset) {
+
+      const auto result = modplus(coords, offset, gridDimensions) - coords;
+      std::cout << "(" << coords[0] << "," << coords[1] << "," << coords[2] << ") + " <<
+                   "(" << offset[0] << "," << offset[1] << "," << offset[2] << ") = " << 
+                   "(" << result[0] << "," << result[1] << "," << result[2] << ")" << std::endl;
+                   return result;
+          });
+      for (auto offset: offsets) {
+      }
+      return std::pair {offsets.cbegin(), offsets.cend()};
     }
     if constexpr (BC == BOUNDCOND::NEUMANN) {
       // TODO
