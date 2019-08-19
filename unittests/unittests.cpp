@@ -1,3 +1,4 @@
+// TODO: Unittests adjmat for a few small matrices
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 

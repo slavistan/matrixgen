@@ -1,5 +1,5 @@
 # Project: Matrixgen
-# Target: example[1-n]
+# Target: ex[1-n]-adjmat
 # Author: Stanislaw Hüll
 
 cmake_minimum_required(VERSION 3.10)
@@ -9,13 +9,13 @@ target_link_libraries(ex1-adjmat
   PRIVATE
     matrixgen)
 #
-# add_executable(example2 example2.cpp)
-# target_link_libraries(example2
+# add_executable(ex2-adjmat ex2-adjmat.cpp)
+# target_link_libraries(ex2-adjmat
 #   PRIVATE
 #     matrixgen)
 #
-# add_executable(example3 example3.cpp)
-# target_link_libraries(example3
+# add_executable(ex3-adjmat ex3-adjmat.cpp)
+# target_link_libraries(ex3-adjmat
 #   PRIVATE
 #     matrixgen)
 

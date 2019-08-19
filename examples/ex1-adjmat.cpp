@@ -1,6 +1,6 @@
 /**
- * Detailed and verbosely commented example detailing the generation of basic
- * adjacency matrices.
+ * Example detailing the basic usage of `matrixgen::adjmat` to generate
+ * adjacency matrices using predefined weight functions and stencils.
  */
 #include <array>
 #include <iostream>
@@ -26,7 +26,7 @@ int main() {
    *
    * Choose a stencil. The stencil encodes the information about which nodes
    * are to be considered adjacent and is hence responsible for the adjacency
-   * matrix's non-zero elements' coordinates. We'll worry about the technical
+   * matrix's non-zero elements' positions. We'll worry about the technical
    * details in a later example and use a preset symmetric 7-point stencil for
    * now.
    */
@@ -37,8 +37,8 @@ int main() {
    *
    * The weight function determines the non-zeros' numerical values. We use
    * constant weights for this example implemented in a preset weight
-   * weight function. Implementing a custom weight function will the subject
-   * of later examples.
+   * function. Implementing a custom weight function will the subject of later
+   * examples.
    */
   const auto weightfn = matrixgen::constweight(7.0);
 
