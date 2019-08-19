@@ -135,20 +135,19 @@ const std::array<DiscreteCoords3d_t<Index_t>, 7> STENCIL<7, Index_t> =
     { 0,  0, -1}, {0, 0, 1}}}; // Z
 
 /**
- * Returns a lambda which implements the symmetric 7p stencil given a set of
- * boundary conditions.
- *
- * TODO: Implement Neumann boundary conditions.
+ * Returns a lambda which implements the symmetric 7p stencil. Boundary
+ * conditions may be chosen independently for x, y and z dimensions
+ * independent of each other.
  */
 template <
-  auto XBC = BC::DIRICHLET,
+  auto XBC = BC::DIRICHLET, // Boundary conditions
   auto YBC = BC::DIRICHLET,
   auto ZBC = BC::DIRICHLET,
   typename Index_t = int
     >
 auto stencil7p() {
 
-  return [offsets = std::array<DiscreteCoords3d_t<Index_t>, 7>{}] (
+  return [offsets = std::array<DiscreteCoords3d_t<Index_t>, 7> {}] (
     const DiscreteCoords3d_t<Index_t>& coords,
     const std::array<int, 3>& gridDimensions) mutable {
 

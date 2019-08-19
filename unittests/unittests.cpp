@@ -11,6 +11,7 @@ using DenseRowMajMat_t  = Eigen::Matrix<Scalar_t, Eigen::Dynamic, Eigen::Dynamic
 
 using matrixgen::create;
 
+// Check a subset of all possible output matrix types we want to support.
 #define Types                                                               \
   Eigen::Matrix<Scalar_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>, \
   Eigen::Matrix<Scalar_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, \

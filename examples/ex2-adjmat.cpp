@@ -1,34 +1,11 @@
 /**
- * Detailed and verbosely commented example detailing the generation of basic
- * adjacency matrices.
+ * Example displaying the generation of adjacency matrices using a compact
+ * syntax. Equivalent to example 1.
  */
 #include <array>
 #include <iostream>
 
 #include <matrixgen/core>
-
-int main()
-{
-
-  /**
-   * Choose the grid's extent as a `std::array<int, 3>`. The coordinates denote
-   * the number of nodes in the x, y, z direction, with the grid's origin being
-   * located at (0, 0, 0).
-   *
-   * For the examples we choose a small grid to keep the output matrix small
-   * enough for your poor terminal.
-   */
-  const auto grid = std::array {3, 3, 1};
-
-  /**
-   * Choose a stencil. The stencil encodes which nodes are considered adjacent
-   * as a set of 3d offsets. A stencil shall be a range of arbitrary length
-   * over elements of type 'std::array<int, 3>' which is traversed once for
-   * each node in the grid. We use a symmetric 7p-stencil for this example.
-   */
-  const auto stencil = std::array<std::array<int, 3>, 7>{{
-      {1, 0, 0}, {-1, 0,0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}, {0, 0, 0}
-  }};
 
   /**
    * Define a lambda to compute the matrix's values i.e. the weights of the
@@ -56,10 +33,13 @@ int main()
    * functions.
    */
   auto weightfn = []() { return 1; };
-
+int main()
+{
   /**
-   * Generate the matrix and use it.
+   * Create the very same matrix from example 1 but use available presets for
+   * the stencil and the weightfunction. See 'matrixgen/presets.hpp' for other
+   * predefined stencils and weighfunctions.
    */
-  const auto mat = matrixgen::adjmat(grid, stencil, weightfn);
+  const auto mat = matrixgen::adjmat({3, 3, 1}, matrixgen::STENCIL<7>, matrixgen::constweight(1));
   std::cout << std::endl << mat << std::endl;
 }

@@ -203,6 +203,7 @@ adjmat(
    * grid boundary). All is well.
    */
   auto result = Eigen::SparseMatrix<Scalar_t, STORAGE_ORDER, Index_t>(matrixHeight, matrixHeight);
+  // TODO: What about makeCompressed()? Is it required when we construct via triplets?
   result.setFromTriplets(triplets.begin(), triplets.end());
   return result;
 }
