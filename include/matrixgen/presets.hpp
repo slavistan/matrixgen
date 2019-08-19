@@ -208,6 +208,9 @@ auto stencil7p() {
             return modplus(coords, offset, gridDimensions) - coords;
           });
     }
+    if constexpr (XBC == BC::NEUMANN) {
+      static_assert(!std::is_same<Index_t, Index_t>(), "TODO: Not yet implemented.");
+    }
     if constexpr (YBC == BC::DIRICHLET) {
       end = std::copy_if(
           std::next(STENCIL<7>.cbegin(), 3),
@@ -226,6 +229,9 @@ auto stencil7p() {
             return modplus(coords, offset, gridDimensions) - coords;
           });
     }
+    if constexpr (YBC == BC::NEUMANN) {
+      static_assert(!std::is_same<Index_t, Index_t>(), "TODO: Not yet implemented.");
+    }
     if constexpr (ZBC == BC::DIRICHLET) {
       end = std::copy_if(
           std::next(STENCIL<7>.cbegin(), 5),
@@ -243,6 +249,9 @@ auto stencil7p() {
           [&coords, &gridDimensions](const auto& offset) {
             return modplus(coords, offset, gridDimensions) - coords;
           });
+    }
+    if constexpr (ZBC == BC::NEUMANN) {
+      static_assert(!std::is_same<Index_t, Index_t>(), "TODO: Not yet implemented.");
     }
 
     using Iter_t = typename decltype(offsets)::const_iterator;
