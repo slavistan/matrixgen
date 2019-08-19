@@ -129,15 +129,19 @@ const std::array<DiscreteCoords3d_t<Index_t>, SIZE> STENCIL;
 
 template <typename Index_t>
 const std::array<DiscreteCoords3d_t<Index_t>, 7> STENCIL<7, Index_t> =
-  {{{  0,  0,  0},
-    { -1,  0,  0}, {  0,  -1,  0}, {  0,  0, -1},
-    {  1,  0,  0}, {  0,   1,  0}, {  0,  0,  1}}};
+  {{{ 0,  0,  0},
+    {-1,  0,  0}, {1, 0, 0},   // X .. don't change the order.
+    { 0, -1,  0}, {0, 1, 0},   // Y
+    { 0,  0, -1}, {0, 0, 1}}}; // Z
 
 /**
- * Returns a lambda which implements the symmetric 7p stencil.
+ * Returns a lambda which implements the symmetric 7p stencil given a set of
+ * boundary conditions.
  */
 template <
-  auto BC = BOUNDCOND::DIRICHLET,
+  auto XBC = BOUNDCOND::DIRICHLET,
+  auto YBC = BOUNDCOND::DIRICHLET,
+  auto ZBC = BOUNDCOND::DIRICHLET,
   typename Index_t = int
     >
 auto stencil7p() {
@@ -152,7 +156,7 @@ auto stencil7p() {
     Expects( coords[0] < gridDimensions[0] );
     Expects( coords[1] < gridDimensions[1] );
     Expects( coords[2] < gridDimensions[2] );
-    static_assert( std::is_same<decltype(BC), BOUNDCOND>() );
+    static_assert( std::is_same<decltype(XBC), BOUNDCOND>() );
 
     /**
      * Check if we're being called on an inner node in which case the node
@@ -169,7 +173,7 @@ auto stencil7p() {
      * conditions.
      */
     std::copy(STENCIL<7>.cbegin(), STENCIL<7>.cend(), offsets.begin());
-    if constexpr (BC == BOUNDCOND::DIRICHLET) {
+    if constexpr (XBC == BOUNDCOND::DIRICHLET) {
       /**
        * For any outer node start out at the full 7p stencil and remove any
        * offsets which are not compatible with our node's position.
@@ -186,7 +190,7 @@ auto stencil7p() {
       using Iter_t = typename decltype(offsets)::const_iterator;
       return std::pair {offsets.cbegin(), static_cast<Iter_t>(end)};
     }
-    if constexpr (BC == BOUNDCOND::PERIODIC) {
+    if constexpr (XBC == BOUNDCOND::PERIODIC) {
       std::transform(offsets.begin(), offsets.end(), offsets.begin(),
           [&coords, &gridDimensions](const auto& offset) {
 
@@ -194,7 +198,7 @@ auto stencil7p() {
           });
       return std::pair {offsets.cbegin(), offsets.cend()};
     }
-    if constexpr (BC == BOUNDCOND::NEUMANN) {
+    if constexpr (XBC == BOUNDCOND::NEUMANN) {
       // TODO
     }
   };
