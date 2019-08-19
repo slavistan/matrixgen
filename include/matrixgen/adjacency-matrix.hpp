@@ -197,7 +197,14 @@ adjmat(
     }
   }
 
-  // create the sparse matrix from the triplets
+  /**
+   * Generate the matrix from the set of triplets. Note that `setFromTriplets`
+   * does respect multiple triplets for the same matrix entry in which case
+   * the values are simply added. This circumstance is relevant for boundary
+   * conditions which map onto the same neighboring node from disparate
+   * offsets (e.g. Neumann which mirrors any offset outside the grid ad the 
+   * grid boundary). All is well.
+   */
   auto result = Eigen::SparseMatrix<Scalar_t, STORAGE_ORDER, Index_t>(matrixHeight, matrixHeight);
   result.setFromTriplets(triplets.begin(), triplets.end());
   return result;

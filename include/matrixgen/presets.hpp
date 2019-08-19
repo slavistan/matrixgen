@@ -190,14 +190,8 @@ auto stencil7p() {
       std::transform(offsets.begin(), offsets.end(), offsets.begin(),
           [&coords, &gridDimensions](const auto& offset) {
 
-      const auto result = modplus(coords, offset, gridDimensions) - coords;
-      std::cout << "(" << coords[0] << "," << coords[1] << "," << coords[2] << ") + " <<
-                   "(" << offset[0] << "," << offset[1] << "," << offset[2] << ") = " << 
-                   "(" << result[0] << "," << result[1] << "," << result[2] << ")" << std::endl;
-                   return result;
+            return modplus(coords, offset, gridDimensions) - coords;
           });
-      for (auto offset: offsets) {
-      }
       return std::pair {offsets.cbegin(), offsets.cend()};
     }
     if constexpr (BC == BOUNDCOND::NEUMANN) {
