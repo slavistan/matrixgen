@@ -21,6 +21,9 @@ enum class BOUNDCOND {
 template <typename Index_t = int>
 using DiscreteCoords3d_t = std::array<Index_t, 3>;
 
+/**
+ * Element-wise addition of arrays.
+ */
 template <typename Index_t>
 DiscreteCoords3d_t<Index_t> 
 operator+(
@@ -31,12 +34,12 @@ operator+(
 }
 
 /**
- * Check whether node at `coords` is an inner node with respect to a symmetric
- * 7-point stencil, i.e. whether it does not reside on any of the outermost
- * sides of the grid.
+ * Check whether node at `coords` is an inner node with respect to an extent
+ * `EXTENT`, i.e. whether it does not reside on the outer `EXTENT` layers.
  */
 template <
-  typename Index_t = int
+  typename Index_t = int,
+  uint32_t EXTENT = 1
     >
 bool is_inner_node(
     const DiscreteCoords3d_t<Index_t>& coords,
@@ -49,18 +52,13 @@ bool is_inner_node(
   Expects( coords[1] < gridDimensions[1] );
   Expects( coords[2] < gridDimensions[2] );
 
-  if (coords[0] >= 1 && coords[0] < gridDimensions[0] - 1 &&
-      coords[1] >= 1 && coords[1] < gridDimensions[1] - 1 &&
-      coords[2] >= 1 && coords[2] < gridDimensions[2] - 1) {
-    return true;
-
-  }
-
-  return false;
+  return (coords[0] >= EXTENT && coords[0] < gridDimensions[0] - EXTENT &&
+          coords[1] >= EXTENT && coords[1] < gridDimensions[1] - EXTENT &&
+          coords[2] >= EXTENT && coords[2] < gridDimensions[2] - EXTENT);
 }
 
 /**
- * Return true if node at 'myCoords' is contained inside the grid.
+ * Return true if node at 'myCoords' is contained by the grid.
  */
 template <typename Index_t = int>
 bool
@@ -89,17 +87,25 @@ const std::array<DiscreteCoords3d_t<Index_t>, 7> STENCIL<7, Index_t> =
     { -1,  0,  0}, {  0,  -1,  0}, {  0,  0, -1},
     {  1,  0,  0}, {  0,   1,  0}, {  0,  0,  1}}};
 
+/**
+ * Returns a lambda which implements the symmetric 7p stencil.
+ */
 template <
-  auto BoundCond = BOUNDCOND::DIRICHLET, // TODO: Implement other boundary conds
+  // TODO Implement boundary conditions
   typename Index_t = int
     >
-auto stencil7p = [offsets = std::array<DiscreteCoords3d_t<Index_t>, 7>{}] (
+auto stencil7p() {
+
+  return [offsets = std::array<DiscreteCoords3d_t<Index_t>, 7>{}] (
     const DiscreteCoords3d_t<Index_t>& coords,
     const std::array<int, 3>& gridDimensions) mutable {
 
-    Expects( coords[0] >= 0 && coords[0] < gridDimensions[0] );
-    Expects( coords[1] >= 0 && coords[1] < gridDimensions[1] );
-    Expects( coords[2] >= 0 && coords[2] < gridDimensions[2] );
+    Expects( coords[0] >= 0                );
+    Expects( coords[1] >= 0                );
+    Expects( coords[2] >= 0                );
+    Expects( coords[0] < gridDimensions[0] );
+    Expects( coords[1] < gridDimensions[1] );
+    Expects( coords[2] < gridDimensions[2] );
 
     /**
      * Check if we're being called on an inner node. This will be the case
@@ -112,25 +118,21 @@ auto stencil7p = [offsets = std::array<DiscreteCoords3d_t<Index_t>, 7>{}] (
     /**
      * For any outer node start out at the full 7p stencil and remove any
      * offsets which are not compatible with our node's position.
-     *
-     * TODO: std::array does not have a erase method. Thus we stuff a dummy
-     *       vector with the full stencil and erase individual offsets from
-     *       that vector. Finally we copy the content of the vector into
-     *       out static `offsets` array.
-     *       This is a bogus implementation. Work on the static array directly.
-     *
+     * This is a generic implementation suitable for all kinds of grids.
      */
-    auto offsets_dummy = std::vector (STENCIL<7>.cbegin(), STENCIL<7>.cend());
-    for( const auto& offset: STENCIL<7> ){
-      const auto neighborCoords = coords + offset;
-       if(!is_inside_grid(neighborCoords, gridDimensions)) {
-         const auto where = std::find(offsets_dummy.begin(), offsets_dummy.end(), offset);
-         offsets_dummy.erase(where);
-       }
-    }
-    std::copy(offsets_dummy.begin(), offsets_dummy.end(), offsets.begin());
-    return std::pair {offsets.cbegin(), offsets.cbegin() + offsets_dummy.size()};
-};
+    std::copy(STENCIL<7>.cbegin(), STENCIL<7>.cend(), offsets.begin());
+    const auto end = std::remove_if(offsets.begin(), offsets.end(),
+                // "Remove" any offsets which point outside the grid.
+                // `remove_if` swaps the bad elements to the end of the array.
+                [&coords, &gridDimensions](const auto& offset) {
+                  const auto neighborCoords = coords + offset;
+                  return !is_inside_grid(neighborCoords, gridDimensions);
+                });
+
+    using Iter_t = typename decltype(offsets)::const_iterator;
+    return std::pair {offsets.cbegin(), static_cast<Iter_t>(end)};
+  };
+}
 
 /**
  * Collection of predefined weight functions.
