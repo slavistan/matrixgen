@@ -44,9 +44,15 @@ int main() {
 
   /**
    * Using the above building blocks we generate the matrix and use it.
-   * `adjmat` returns an uncompressed row-major `Eigen::SparseMatrix` object
-   * using a double as its default scalar type.
+   * By default `adjmat` returns an uncompressed row-major
+   * `Eigen::SparseMatrix` object using a double as its default scalar type.[*]
    */
   const auto mat = matrixgen::adjmat(grid, stencilfn, weightfn);
   std::cout << std::endl << mat << std::endl;
 }
+/**
+ * [*]
+ *
+ * If you like, you can overwrite all of these settings at the function
+ * call site. Have a look the `matrixgen::adjmat`'s template parameters.
+ */
