@@ -11,6 +11,8 @@
 int main()
 {
   /**
+   * Choose a stencil and boundary conditions.
+   *
    * Adjacency matrices for structure grids are generated adhering to a simple
    * schema: The stencil function is responsible for the location of all
    * non-zeros while the weight function determines their values.
@@ -28,8 +30,11 @@ int main()
    */
 
   /**
-   * Convert to a `Eigen::Matrix` for pretty-print. Note the inline usage of a
-   * different weight function picking random weights from the unit interval.
+   * Generate the matrix.
+   *
+   * Note the inline usage of a different weight function picking random
+   * weights from the unit interval. Also, we pass the grid dimensions as a
+   * braced-init list.
    *
    * We convert the matrix to a dense `Eigen::Matrix` for its pretty-print
    * capabilities.
