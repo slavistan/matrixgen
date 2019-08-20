@@ -4,6 +4,7 @@
 
 #include <array>
 #include <limits>
+#include <random>
 #include <utility>
 #include <vector>
 
@@ -140,9 +141,9 @@ const std::array<DiscreteCoords3d_t<Index_t>, 7> STENCIL<7, Index_t> =
  * independent of each other.
  */
 template <
-  auto XBC = BC::DIRICHLET, // Boundary conditions
-  auto YBC = BC::DIRICHLET,
-  auto ZBC = BC::DIRICHLET,
+  auto XBC = BC::DIRICHLET, // Boundary conditions for the X, ..
+  auto YBC = BC::DIRICHLET, // .. the Y,
+  auto ZBC = BC::DIRICHLET, // .. and the Z-dimension, respectively.
   typename Index_t = int
     >
 auto stencil7p() {
@@ -272,9 +273,26 @@ template <
     >
 auto constweight(Scalar_t val = 1) {
 
-  return ([val]() { return static_cast<Scalar_t>(val); });
+  return [val]() { return static_cast<Scalar_t>(val); };
 }
 
-// TODO: Implement randomweight(seed = 1);
+/**
+ * Weightfunction returning from a uniform real distribution over [0; 1]
+ */
+template <
+  typename Scalar_t = double,
+  typename Seed_t = uint64_t
+    >
+auto randweight(Seed_t seed = 1) {
+
+  using Engine_t = std::default_random_engine;
+  using Dist_t = std::uniform_real_distribution<Scalar_t>;
+
+  return
+    [engine = Engine_t(seed), dist = Dist_t(static_cast<Scalar_t>(0.0), static_cast<Scalar_t>(1.0))]
+    () mutable {
+      return static_cast<Scalar_t>(dist(engine));
+    };
+}
 
 } // namespace matrixgen
