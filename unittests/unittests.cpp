@@ -47,3 +47,4 @@ TEST_CASE_TEMPLATE("create", MatType_t, Types) {
 
   CHECK(m == DenseRowMajMat_t(subject));
 }
+

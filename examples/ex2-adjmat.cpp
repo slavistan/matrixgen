@@ -8,6 +8,8 @@
 
 #include <matrixgen/core>
 
+#include <Eigen/Core>
+
 int main()
 {
   /**
@@ -30,7 +32,8 @@ int main()
    */
 
   /**
-   * Generate the matrix.
+   * Generate the matrix and, optionally, pick a different output matrix type.
+   * Any valid specialization of `Eigen::SparseMatrix` will do.
    *
    * Note the inline usage of a different weight function picking random
    * weights from the unit interval. Also, we pass the grid dimensions as a
@@ -39,6 +42,10 @@ int main()
    * We convert the matrix to a dense `Eigen::Matrix` for its pretty-print
    * capabilities.
    */
-  const auto mat = matrixgen::adjmat({4, 4, 1}, stencilfn, matrixgen::randweight(1));
-  std::cout << std::endl << Eigen::MatrixXd(mat) << std::endl;
+  using Scalar_t = float; // Try double here
+  using Matrix_t = Eigen::SparseMatrix<Scalar_t, Eigen::ColMajor>;
+  const auto mat = matrixgen::adjmat<Matrix_t>({4, 4, 1}, stencilfn, matrixgen::randweight(1));
+
+  using DenseMatrix_t = Eigen::Matrix<Scalar_t, Eigen::Dynamic, Eigen::Dynamic>;
+  std::cout << std::endl << DenseMatrix_t(mat) << std::endl;
 }
