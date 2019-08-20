@@ -263,7 +263,9 @@ auto stencil7p() {
  * Collection of predefined weight functions.
  *
  * TODO: Is this the correct way to implement preset lambdas? Pass them as return
- *       "value"?
+ *       "value"? Do multiple calls return different lambdas or is the data 
+ *       shared between call sites in the case of mutable lambdas (as in the
+ *       randweight below)?
  */
 /**
  * Weighfunction returning a constant.
