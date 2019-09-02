@@ -19,7 +19,6 @@ using matrixgen::create;
   Eigen::SparseMatrix<Scalar_t, Eigen::RowMajor>,                           \
   Eigen::SparseMatrix<Scalar_t, Eigen::ColMajor>,                           \
   Eigen::SparseMatrix<Scalar_t, Eigen::ColMajor, int64_t>
-
 TEST_CASE_TEMPLATE("create", MatType_t, Types) {
 
   /**
@@ -42,9 +41,142 @@ TEST_CASE_TEMPLATE("create", MatType_t, Types) {
   }
 
   SUBCASE("Elements by list") {
-    subject = create<MatType_t>(rows, cols, {3, 0, 0, 1, 9, 4});
+    subject = create<MatType_t>(rows, cols,
+        {3, 0,
+         0, 1,
+         9, 4});
   }
 
   CHECK(m == DenseRowMajMat_t(subject));
+}
+
+TEST_CASE("assemble") {
+
+  using SparseMatRowMaj_t = Eigen::SparseMatrix<double, Eigen::RowMajor>;
+  using SparseMatColMaj_t = Eigen::SparseMatrix<double, Eigen::ColMajor>;
+  using DenseMat_t = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
+
+  SUBCASE("trivial-rowmaj") {
+    const auto matrices = std::vector {
+      matrixgen::create<SparseMatRowMaj_t>(3, 4,
+        {1, 0, 0, 1,
+         1, 0, 1, 0,
+         1, 1, 0, 0}),
+      matrixgen::create<SparseMatRowMaj_t>(3, 4,
+        {0, 0, 2, 2,
+         2, 0, 0, 2,
+         0, 2, 0, 0}),
+      matrixgen::create<SparseMatRowMaj_t>(3, 4,
+        {0, 0, 3, 3,
+         3, 0, 0, 3,
+         0, 3, 0, 0})
+    };
+    const auto indices = std::vector {0, 1, 2};
+
+    const auto result = matrixgen::assemble(
+        matrices.begin(),
+        matrices.end(),
+        indices.begin(),
+        indices.end());
+
+    const auto target = matrixgen::create<DenseMat_t>(3, 4,
+        {1, 0, 0, 1,
+         2, 0, 0, 2,
+         0, 3, 0, 0});
+
+    REQUIRE(DenseMat_t(result) == target);
+  }
+
+  SUBCASE("different-dimensions-rowmaj") {
+    const auto matrices = std::vector {
+      matrixgen::create<SparseMatRowMaj_t>(3, 3,
+        {1, 0, 1,
+         1, 1, 0,
+         0, 0, 0}),
+      matrixgen::create<SparseMatRowMaj_t>(3, 4,
+        {0, 0, 2, 2,
+         2, 0, 0, 2,
+         0, 2, 0, 0}),
+      matrixgen::create<SparseMatRowMaj_t>(3, 4,
+        {0, 0, 3, 3,
+         3, 0, 0, 3,
+         0, 3, 0, 0})
+    };
+    const auto indices = std::vector {0, 1, 2};
+
+    const auto result = matrixgen::assemble(
+        matrices.begin(),
+        matrices.end(),
+        indices.begin(),
+        indices.end());
+
+    const auto target = matrixgen::create<DenseMat_t>(3, 4,
+        {1, 0, 1, 0,
+         2, 0, 0, 2,
+         0, 3, 0, 0});
+
+    REQUIRE(DenseMat_t(result) == target);
+  }
+
+  SUBCASE("trivial-colmaj") {
+    const auto matrices = std::vector {
+      matrixgen::create<SparseMatColMaj_t>(3, 4,
+        {1, 0, 0, 1,
+         1, 0, 1, 0,
+         1, 1, 0, 0}),
+      matrixgen::create<SparseMatColMaj_t>(3, 4,
+        {0, 0, 2, 2,
+         2, 0, 0, 2,
+         0, 2, 0, 0}),
+      matrixgen::create<SparseMatColMaj_t>(3, 4,
+        {0, 0, 3, 3,
+         3, 0, 0, 3,
+         0, 3, 0, 0})
+    };
+    const auto indices = std::vector {0, 1, 2, 0};
+
+    const auto result = matrixgen::assemble(
+        matrices.begin(),
+        matrices.end(),
+        indices.begin(),
+        indices.end());
+
+    const auto target = matrixgen::create<DenseMat_t>(3, 4,
+        {1, 0, 3, 1,
+         1, 0, 0, 0,
+         1, 2, 0, 0});
+
+    REQUIRE(DenseMat_t(result) == target);
+  }
+
+  SUBCASE("different-dimensions-colmaj") {
+    const auto matrices = std::vector {
+      matrixgen::create<SparseMatColMaj_t>(2, 4,
+        {1, 0, 0, 1,
+         1, 0, 1, 0}),
+      matrixgen::create<SparseMatColMaj_t>(3, 4,
+        {0, 0, 2, 2,
+         2, 0, 0, 2,
+         0, 2, 0, 0}),
+      matrixgen::create<SparseMatColMaj_t>(3, 4,
+        {0, 0, 3, 3,
+         3, 0, 0, 3,
+         0, 3, 0, 0})
+    };
+    const auto indices = std::vector {0, 1, 2, 2};
+
+    const auto result = matrixgen::assemble(
+        matrices.begin(),
+        matrices.end(),
+        indices.begin(),
+        indices.end());
+
+    const auto target = matrixgen::create<DenseMat_t>(3, 4,
+        {1, 0, 3, 3,
+         1, 0, 0, 3,
+         0, 2, 0, 0});
+
+    REQUIRE(DenseMat_t(result) == target);
+  }
 }
 

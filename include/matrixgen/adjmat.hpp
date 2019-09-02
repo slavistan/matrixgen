@@ -62,12 +62,12 @@ get_matrix_entry_coordinates(
   const DiscreteCoords3d_t<Index_t>& neighborCoords,
   const DiscreteCoords3d_t<Index_t>& gridDimensions) {
 
-  Expects ( coords[0] >= 0                      );
-  Expects ( coords[1] >= 0                      );
-  Expects ( coords[2] >= 0                      );
-  Expects ( coords[0] < gridDimensions[0]       );
-  Expects ( coords[1] < gridDimensions[1]       );
-  Expects ( coords[2] < gridDimensions[2]       );
+  Expects ( coords[0] >= 0                        );
+  Expects ( coords[1] >= 0                        );
+  Expects ( coords[2] >= 0                        );
+  Expects ( coords[0] < gridDimensions[0]         );
+  Expects ( coords[1] < gridDimensions[1]         );
+  Expects ( coords[2] < gridDimensions[2]         );
   Expects ( neighborCoords[0] >= 0                );
   Expects ( neighborCoords[1] >= 0                );
   Expects ( neighborCoords[2] >= 0                );
@@ -81,11 +81,6 @@ get_matrix_entry_coordinates(
   return {{ii, jj}};
 }
 
-/**
- * Specialization for `adjmat` for `Eigen::SparseMatrix<>` return types. In
- * fact, this is the only output matrix type we'll support for now due to
- * the fact that adjacency matrices are inherently sparse.
- */
 template <
   typename OutMatrix_t,
   typename StencilFn_t,
@@ -94,6 +89,12 @@ template <
     >
 struct Adjmat {};
 
+/**
+ * Specialization of `adjmat` for `Eigen::SparseMatrix<>` return types.
+ * This is the only output matrix type we'll support for now due to
+ * the fact that adjacency matrices are inherently sparse.
+ * TODO: static_assert the above in the dispatcher.
+ */
 template <
   typename Scalar_t,
   int ALIGNMENT,
@@ -122,7 +123,7 @@ struct Adjmat<
    */
   static
   Matrix_t
-  adjmat(
+  invoke(
     const DiscreteCoords3d_t<Index_t> gridDimensions,
     StencilFn_t stencilfn,
     WeightFn_t weightfn) {
@@ -145,6 +146,7 @@ struct Adjmat<
     //       Hence I removed the call to `triplets.reserve()` and use dynamic
     //       reallocation via `push_back()`. Implement some option for the user
     //       to specify an upper limit to the the triplets vector's size.
+    //       Below is the previously used allocation code.
     // const auto upperLimToCountOfNnz = matrixHeight * std::size(stencilfn);
     // triplets.reserve(upperLimToCountOfNnz);
 
@@ -262,7 +264,8 @@ adjmat(
   // TODO: Assert stencilfn's signature to avoid funny compilation errors.
   // TODO: Assert weightfn's signature to avoid funny compilation errors.
 
-  return implementation::Adjmat<OutMatrix_t, StencilFn_t, WeightFn_t, Index_t>::adjmat(gridDimensions, stencilfn, weightfn);
+  return implementation::Adjmat<OutMatrix_t, StencilFn_t, WeightFn_t, Index_t>::
+          invoke(gridDimensions, stencilfn, weightfn);
 }
 
 } // namespace matrixgen

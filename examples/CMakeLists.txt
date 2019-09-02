@@ -19,7 +19,7 @@ target_link_libraries(ex3-adjmat
   PRIVATE
     matrixgen)
 
-# add_executable(ex4-adjmat ex4-adjmat.cpp)
-# target_link_libraries(ex4-adjmat
-#   PRIVATE
-#     matrixgen)
+add_executable(ex4-adjmat ex4-adjmat.cpp)
+target_link_libraries(ex4-adjmat
+  PRIVATE
+    matrixgen)
