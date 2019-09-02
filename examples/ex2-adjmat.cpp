@@ -21,15 +21,14 @@ int main()
    *
    * Thus boundary conditions are implemented within the scope of the stencil
    * function. For this example we use the preset stencil function to declare
-   * periodic boundary conditions in the X-dimension and Dirichlet bcs for the
+   * periodic boundary conditions in the X-dimension and Dirichlet BCs for the
    * Y and Z directions. This is a common configuration for the simulation
    * of 2D flows through a pipe, where conservation of flow matter implies
    * periodic boundary conditions along the flow path.
    */
   using matrixgen::BC;
   const auto stencilfn = matrixgen::stencil7p<BC::PERIODIC, BC::DIRICHLET, BC::DIRICHLET>();
-  /**                                         ^~~~~ X ~~~^  ^~~~~ Y ~~~~^  ^~~~~ Z ~~~~^
-   */
+  //                                         ^~~~~ X ~~~^  ^~~~~ Y ~~~~^  ^~~~~ Z ~~~~^
 
   /**
    * Generate the matrix and, optionally, pick a different output matrix type.
@@ -43,8 +42,8 @@ int main()
    * capabilities.
    */
   using Scalar_t = float; // Try double here
-  using Matrix_t = Eigen::SparseMatrix<Scalar_t, Eigen::ColMajor>;
-  const auto mat = matrixgen::adjmat<Matrix_t>({4, 4, 1}, stencilfn, matrixgen::randweight(1));
+  using Matrix_t = Eigen::SparseMatrix<Scalar_t, Eigen::ColMajor>; // Try RowMajor here
+  const auto mat = matrixgen::adjmat<Matrix_t>({4, 4, 1}, stencilfn, matrixgen::randweight());
 
   using DenseMatrix_t = Eigen::Matrix<Scalar_t, Eigen::Dynamic, Eigen::Dynamic>;
   std::cout << std::endl << DenseMatrix_t(mat) << std::endl;

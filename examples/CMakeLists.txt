@@ -13,13 +13,13 @@ add_executable(ex2-adjmat ex2-adjmat.cpp)
 target_link_libraries(ex2-adjmat
   PRIVATE
     matrixgen)
-#
-# add_executable(ex3-adjmat ex3-adjmat.cpp)
-# target_link_libraries(ex3-adjmat
-#   PRIVATE
-#     matrixgen)
 
-add_executable(ex4-adjmat ex4-adjmat.cpp)
-target_link_libraries(ex4-adjmat
+add_executable(ex3-adjmat ex3-adjmat.cpp)
+target_link_libraries(ex3-adjmat
   PRIVATE
     matrixgen)
+
+# add_executable(ex4-adjmat ex4-adjmat.cpp)
+# target_link_libraries(ex4-adjmat
+#   PRIVATE
+#     matrixgen)
