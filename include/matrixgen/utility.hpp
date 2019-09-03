@@ -4,6 +4,7 @@
 
 #include <gsl/gsl_assert>
 
+#include <execution>
 #include <numeric>
 
 namespace matrixgen
@@ -27,7 +28,7 @@ pi() {
 /**
  * num_of_nnz_in_outer
  *
- * Return the number of nonzeros in the `ii`-th row (column) for row-major
+ * Returns the number of nonzeros in the `ii`-th row (column) for row-major
  * (col-major) sparse matrix `mat`.
  */
 template <
@@ -102,12 +103,14 @@ central_moving_sum(
   using Input_t = typename std::iterator_traits<RandAccIter_t>::value_type;
 
   // Generate the exclusive scan
+  // TODO: Can be parallelized
   std::vector<Input_t> xscan(numOfElements + 1);
-  std::exclusive_scan(first, last, std::begin(xscan), static_cast<Input_t>(0));
+  std::exclusive_scan(std::execution::seq, first, last, std::begin(xscan), static_cast<Input_t>(0));
   xscan.back() = xscan[xscan.size() - 2] + *std::prev(last);
 
   // Compute the moving sum via the elements to the left and right. Stop at
   // the array's boundaries.
+  // TODO: Can be parallelized
   for(auto ii = 0; ii < numOfElements; ++ii) {
     const int64_t left = std::max<int64_t>(0, ii - radius);
     const int64_t right = std::min<int64_t>(ii + radius + 1, xscan.size() - 1);
@@ -121,7 +124,7 @@ central_moving_sum(
  * TODO: Clarify
  *
  * Computes the central moving mean at radius 'radius' over a range of
- * elements [irst, last) and writes the outputs to the range pointed by
+ * elements [first, last) and writes the outputs to the range pointed by
  * 'outFirst'. Border elements of the input range are treated according to
  * 'central_moving_sum'.
  *
@@ -163,27 +166,26 @@ closed_loop_moving_mean(
   // (4) Map angles back into user-specified input interval
   //
 
-  //
   // (1.1) Create phase angles in [0; 2*pi) from inputs
-  //
-  std::vector<double> angles(numOfElements);
+  auto angles = std::vector<double>(numOfElements);
+  const auto rangeWidth = loopMax - loopMin;
+  std::transform(
+      first,
+      last,
+      std::begin(angles), [rangeWidth, loopMin](auto x) {
+        return 2 * pi() * (x - loopMin) / rangeWidth;
+      });
 
-  const auto range_width = loopMax - loopMin;
-  std::transform(std::execution::par, first, last, std::begin(angles),
-                  [range_width, loopMin](auto x)
-                  {
-                    return 2 * pi() * (x - loopMin) / range_width;
-                  });
-  //
   // (1.2) Generate complex doubles from phase angles to perform vector arithmetic on
-  //
-  std::vector<std::complex<double>> cplx(angles.size());
-  std::transform(std::execution::par, angles.cbegin(), angles.cend(), cplx.begin(),
-                  [](double d)
-                  {
-                    return std::polar(1.0, d);
-                  });
-  //
+  auto cplx = std::vector<std::complex<double>>(angles.size());
+  std::transform(
+      angles.cbegin(),
+      angles.cend(),
+      cplx.begin(),
+      [](double d) {
+        return std::polar(1.0, d);
+      });
+
   // (2) Compute central moving mean
   //
   // In order to efficiently compute the central moving sum for large radii the evaluation scheme is optimized
@@ -195,87 +197,82 @@ closed_loop_moving_mean(
   // TODO: Investigate mechanism in case of overflow
   //
   // (2.1) Set up integer complex
-  const double scale = std::pow(2, 50);
-  std::vector<std::complex<long long int>> cplx_int(cplx.size());
-  std::transform(std::execution::par, std::cbegin(cplx), std::cend(cplx), std::begin(cplx_int),
-                  [scale](const std::complex<double>& dcplx)
-                  {
-                    return static_cast<std::complex<long long int>>(scale * dcplx);
-                  });
-  //
-  // (2.2) Compute central moving sum (vector addition)
-  //
-  std::vector<std::complex<long long int>> smoothed_cplx_int(cplx_int.size());
-  central_moving_sum(std::cbegin(cplx_int), std::cend(cplx_int), std::begin(smoothed_cplx_int), radius);
-  //
-  // (3) Revert to phase angles
-  //
-  std::transform(std::execution::par, std::cbegin(smoothed_cplx_int), std::cend(smoothed_cplx_int), std::begin(angles),
-                  [](std::complex<long long int> icplx)
-                  {
-                    if(icplx.real() == 0 && icplx.imag() == 0)
-                      return static_cast<double>(0); // If, by chance, 0 + 0i is generated return angle '0'.
-                    else
-                    {
-                      const std::complex<double> dcplx(icplx.real(), icplx.imag());
-                      double arg = std::arg(dcplx);
-                      if(arg <= 0) arg += 2 * pi();
+  const auto scale = static_cast<double>(std::pow(2, 50));
+  auto cplxInt = std::vector<std::complex<int64_t>>(cplx.size());
+  std::transform(
+      std::cbegin(cplx),
+      std::cend(cplx),
+      std::begin(cplxInt),
+      [scale](const std::complex<double>& dcplx) {
+        return static_cast<std::complex<int64_t>>(scale * dcplx);
+      });
 
-                      return arg;
-                    }
-                  });
-  //
+  // (2.2) Compute central moving sum (vector addition)
+  auto smoothedCplxInt = std::vector<std::complex<int64_t>>(cplxInt.size());
+  central_moving_sum(std::cbegin(cplxInt), std::cend(cplxInt), std::begin(smoothedCplxInt), radius);
+
+  // (3) Revert to phase angles
+  std::transform(
+      std::cbegin(smoothedCplxInt),
+      std::cend(smoothedCplxInt),
+      std::begin(angles),
+      [](std::complex<int64_t> icplx) {
+        if(icplx.real() == 0 && icplx.imag() == 0) {
+          return static_cast<double>(0); // If, by chance, 0 + 0i is generated return angle '0'.
+        }
+        const std::complex<double> dcplx(icplx.real(), icplx.imag());
+        double arg = std::arg(dcplx);
+        if(arg <= 0) {
+          arg += 2 * pi();
+        }
+        return arg;
+      });
+
   // (4) Map smoothed angles into input range
-  //
-  std::transform(std::execution::par, std::cbegin(angles), std::cend(angles), outFirst,
-                  [range_width, loopMin](double ang)
-                  {
-                    return loopMin + range_width * (ang)/(2 * pi());
-                  });
+  std::transform(
+      std::cbegin(angles),
+      std::cend(angles),
+      outFirst,
+      [rangeWidth, loopMin](double ang) {
+        return loopMin + rangeWidth * (ang)/(2 * pi());
+      });
 }
-//
-// Darts Sampling: Implementation
-//
-template <typename InputIter1, typename InputIter2, typename OutputIter>
+
+/**
+ * darts_sampling
+ *
+ * TODO: Documentation
+ */
+template <
+  typename InputIter1_t,
+  typename InputIter2_t,
+  typename OutputIter_t
+    >
 void
 darts_sampling(
-  InputIter1 quota_first,
-  InputIter1 quota_last,
-  InputIter2 bullets_first,
-  InputIter2 bullets_last,
-  OutputIter out_first
-)
-{
-  //
-  // (1) Create target bins (set up 'dartboard')
-  //
-  std::vector<double> ratios(std::distance(quota_first, quota_last));
-  const double sum = std::accumulate(quota_first, quota_last, static_cast<double>(0));
-  std::transform(
-    std::execution::par,
-    quota_first,
-    quota_last,
-    std::begin(ratios),
-    [sum](auto val) -> double {return val/sum;});
-  //
-  // (2) Generate indices ('Evaluate hits')
-  //
-  std::vector<double> ratios_iscan(ratios.size());
-  std::inclusive_scan(std::execution::par, std::cbegin(ratios), std::cend(ratios), std::begin(ratios_iscan));
-  const auto nbullet = std::distance(bullets_first, bullets_last);
-  std::for_each(
-      std::execution::par,
-      boost::counting_iterator<long int>(0),
-      boost::counting_iterator<long int>(nbullet),
-      [bullets_first, out_first, &ratios_iscan](const auto& loop_index)
-      {
-        auto it = std::next(bullets_first, loop_index);
-        auto result_iter = std::lower_bound(std::cbegin(ratios_iscan), std::cend(ratios_iscan), *it);
-        auto index = std::distance(std::cbegin(ratios_iscan), result_iter);
+    InputIter1_t quotaFirst,
+    InputIter1_t quotaLast,
+    InputIter2_t bulletsFirst,
+    InputIter2_t bulletsLast,
+    OutputIter_t outFirst) {
 
-        auto offset = std::distance(bullets_first, it);
-        *std::next(out_first, offset) = index;
-      });
+  // (1) Create target bins (set up 'dartboard')
+  std::vector<double> ratios(std::distance(quotaFirst, quotaLast));
+  const double sum = std::accumulate(quotaFirst, quotaLast, static_cast<double>(0));
+  std::transform(quotaFirst, quotaLast, std::begin(ratios), [sum](auto val) -> double {return val/sum;});
+
+  // (2) Generate indices ('Evaluate hits')
+  std::vector<double> ratiosIncScan(ratios.size());
+  std::inclusive_scan(std::execution::seq, std::cbegin(ratios), std::cend(ratios), std::begin(ratiosIncScan));
+  const auto nbullet = std::distance(bulletsFirst, bulletsLast);
+  for(auto loopIndex = 0; loopIndex < nbullet; ++loopIndex) {
+    auto it = std::next(bulletsFirst, loopIndex);
+    auto resultIter = std::lower_bound(std::cbegin(ratiosIncScan), std::cend(ratiosIncScan), *it);
+    auto index = std::distance(std::cbegin(ratiosIncScan), resultIter);
+
+    auto offset = std::distance(bulletsFirst, it);
+    *std::next(outFirst, offset) = index;
+  };
 }
 
 } // namespace matrixgen

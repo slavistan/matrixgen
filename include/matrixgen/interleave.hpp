@@ -60,7 +60,7 @@ struct Interleave<Eigen::SparseMatrix<Scalar_t, ALIGNMENT, Index_t>, InMatrixIte
   std::default_random_engine generator(seed);
   std::uniform_real_distribution<double> distribution(0, 1);
   std::vector<double> runif(outerSize);
-  std::transform(runif.begin(), runif.end(), runif.begin(),
+  std::transform(runif.begin(), runif.end(), runif.begin(), // TODO: Replace by `std::generate`
     [&runif, &distribution, &generator](double)
     {
       return distribution(generator);
@@ -68,34 +68,20 @@ struct Interleave<Eigen::SparseMatrix<Scalar_t, ALIGNMENT, Index_t>, InMatrixIte
   );
 
   // Apply closed-loop moving mean to runifs
-  utility::closed_loop_moving_mean(runif.begin(), runif.end(), runif.begin(), 0, 1, coupling);
+  closed_loop_moving_mean(runif.begin(), runif.end(), runif.begin(), 0, 1, coupling);
 
   // Generate indices from runifs and proportions
   std::vector<std::size_t> indices(outerSize);
-  asc::matrixgen::utility::darts_sampling(propFirst, propLast, runif.begin(), runif.end(), indices.begin());
+  darts_sampling(propFirst, propLast, runif.begin(), runif.end(), indices.begin());
 
-  //
   // (2) Contruct matrix from indexed rows
-  //
-  OutMatrix_t result = asc::matrixgen::assemble(matFirst, matLast, indices.cbegin(), indices.cend());
-  return std::move(result);
+  return assemble(matFirst, matLast, indices.cbegin(), indices.cend());
 }
 };
 }
 
 namespace matrixgen {
-//
-// interleave
-//
-// Returns a new row-major (col-major) matrix built from the row-major (col-major) matrices in the input range
-// [matrix_first, matrix_last) by choosing individual rows (columns) according to the indices in the index range
-// [index_fist, index_last). The returned matrix's k-th row (column) is equal to the k-th row (column) of the
-// input matrix pointed by the k-th index.
-//
-// The returned matrix is uncompressed. Its height (width) is the total number of input matrices, whereas its width
-// (height) is equal to the input matrices' maximum width (height). Rows (columns) which were drawn from a matrix whose
-// width (height) is less than the resulting matrix's width (height) are tail-padded with 0.
-//
+
 template <
   typename InMatrixIter_t,
   typename OutMatrix_t = typename std::iterator_traits<InMatrixIter_t>::value_type,
