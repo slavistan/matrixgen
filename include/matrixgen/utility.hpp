@@ -111,37 +111,49 @@ central_moving_sum(
   for(auto ii = 0; ii < numOfElements; ++ii) {
     const int64_t left = std::max<int64_t>(0, ii - radius);
     const int64_t right = std::min<int64_t>(ii + radius + 1, xscan.size() - 1);
-    *std::next(outFirst, ii) =
-      (*std::next(std::cbegin(xscan), right) - *std::next(std::cbegin(xscan), left));
+    *std::next(outFirst, ii) = *std::next(std::cbegin(xscan), right) - *std::next(std::cbegin(xscan), left);
   };
 }
 
-//
-// Closed-Loop Moving Mean
-//
-// Computes the central moving mean at radius 'radius' over a range of elements [irst, last) and writes the outputs
-// to the range beginning at 'outFirst'. Border elements of the input range are treated according to 'central_moving_sum'.
-//
-// The closed-loop moving mean requires the specification of the closed loop by means of 'loop_min' and 'loop_max'. The
-// numeric value will roll over to 'loop_min' if it is greater than or equal to 'loop_max' while values less than
-// 'loop_min' will roll over to 'loop_max'.
-//
-// Closed-loop moving mean is computed by vectorial addition of the values' unit vectors of a window which correspond
-// to the unit vectors of the sphere whose angle spans [loop_min, loop_mmax) and then normalizing the input.
-//
-// Can be used in-place.
-//
-template <typename InputIterator, typename OutputIterator>
-void closed_loop_moving_mean(
-  InputIterator first,
-  InputIterator last,
-  OutputIterator outFirst,
-  typename std::iterator_traits<InputIterator>::value_type loop_min,
-  typename std::iterator_traits<InputIterator>::value_type loop_max,
-  std::size_t extent)
-{
-  assert(loop_min < loop_max);
-  assert(std::all_of(first, last, [loop_min, loop_max](auto x) {return (loop_min <= x) && (x <= loop_max);}));
+/**
+ * closed_loop_moving_mean
+ *
+ * TODO: Clarify
+ *
+ * Computes the central moving mean at radius 'radius' over a range of
+ * elements [irst, last) and writes the outputs to the range pointed by
+ * 'outFirst'. Border elements of the input range are treated according to
+ * 'central_moving_sum'.
+ *
+ * The closed-loop moving mean requires the specification of the closed loop
+ * by means of 'loopMin' and 'loopMax'. The numeric value will roll over to
+ * 'loopMin' if it is greater than or equal to 'loopMax' while values less
+ * than 'loopMin' will roll over to 'loopMax'.
+ *
+ * Closed-loop moving mean is computed by vectorial addition of the values'
+ * unit vectors of a window which correspond to the unit vectors of the sphere
+ * whose angle spans [loopMin, loop_mmax) and then normalizing the input.
+ *
+ * Can be used in-place.
+ */
+template <
+  typename InputIter_t,
+  typename OutputIter_t
+    >
+void
+closed_loop_moving_mean(
+    InputIter_t first,
+    InputIter_t last,
+    OutputIter_t outFirst,
+    typename std::iterator_traits<InputIter_t>::value_type loopMin,
+    typename std::iterator_traits<InputIter_t>::value_type loopMax,
+    std::size_t radius) {
+
+  const auto numOfElements = std::distance(first, last);
+
+  Expects( numOfElements > 0 );
+  Expects( std::all_of(first, last, [loopMin, loopMax](auto x) {return (loopMin <= x) && (x <= loopMax);}) );
+
   //
   // Working mechanism
   //
@@ -154,14 +166,13 @@ void closed_loop_moving_mean(
   //
   // (1.1) Create phase angles in [0; 2*pi) from inputs
   //
-  const auto size = std::distance(first, last);
-  std::vector<double> angles(size);
+  std::vector<double> angles(numOfElements);
 
-  const auto range_width = loop_max - loop_min;
+  const auto range_width = loopMax - loopMin;
   std::transform(std::execution::par, first, last, std::begin(angles),
-                  [range_width, loop_min](auto x)
+                  [range_width, loopMin](auto x)
                   {
-                    return 2 * pi() * (x - loop_min) / range_width;
+                    return 2 * pi() * (x - loopMin) / range_width;
                   });
   //
   // (1.2) Generate complex doubles from phase angles to perform vector arithmetic on
@@ -195,7 +206,7 @@ void closed_loop_moving_mean(
   // (2.2) Compute central moving sum (vector addition)
   //
   std::vector<std::complex<long long int>> smoothed_cplx_int(cplx_int.size());
-  central_moving_sum(std::cbegin(cplx_int), std::cend(cplx_int), std::begin(smoothed_cplx_int), extent);
+  central_moving_sum(std::cbegin(cplx_int), std::cend(cplx_int), std::begin(smoothed_cplx_int), radius);
   //
   // (3) Revert to phase angles
   //
@@ -217,9 +228,9 @@ void closed_loop_moving_mean(
   // (4) Map smoothed angles into input range
   //
   std::transform(std::execution::par, std::cbegin(angles), std::cend(angles), outFirst,
-                  [range_width, loop_min](double ang)
+                  [range_width, loopMin](double ang)
                   {
-                    return loop_min + range_width * (ang)/(2 * pi());
+                    return loopMin + range_width * (ang)/(2 * pi());
                   });
 }
 //
