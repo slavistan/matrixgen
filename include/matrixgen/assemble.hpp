@@ -16,7 +16,7 @@ namespace matrixgen::implementation
 template <
   typename OutMatrix_t,
   typename InMatrixIter_t,
-  typename PropIter_t
+  typename IndexIter_t
     >
 struct Assemble;
 
@@ -28,9 +28,9 @@ template <
   int ALIGNMENT,
   typename Index_t,
   typename InMatrixIter_t,
-  typename PropIter_t
+  typename IndexIter_t
     >
-struct Assemble<Eigen::SparseMatrix<Scalar_t, ALIGNMENT, Index_t>, InMatrixIter_t, PropIter_t>
+struct Assemble<Eigen::SparseMatrix<Scalar_t, ALIGNMENT, Index_t>, InMatrixIter_t, IndexIter_t>
 {
 
   using OutMatrix_t = Eigen::SparseMatrix<Scalar_t, ALIGNMENT, Index_t>;
@@ -40,8 +40,8 @@ struct Assemble<Eigen::SparseMatrix<Scalar_t, ALIGNMENT, Index_t>, InMatrixIter_
   invoke(
       InMatrixIter_t matrixFirst,
       InMatrixIter_t matrixLast,
-      PropIter_t indexFirst,
-      PropIter_t indexLast) {
+      IndexIter_t indexFirst,
+      IndexIter_t indexLast) {
 
     const auto numOfMatrices = std::distance(matrixFirst, matrixLast);
     const auto numOfIndices = std::distance(indexFirst, indexLast);
@@ -145,23 +145,22 @@ namespace matrixgen
 template <
   typename InMatrixIter_t,
   typename OutMatrix_t = typename std::iterator_traits<InMatrixIter_t>::value_type,
-  typename PropIter_t = void
+  typename IndexIter_t = void
     >
 OutMatrix_t
 assemble(
     InMatrixIter_t matFirst, // range over matrices
     InMatrixIter_t matLast,
-    PropIter_t indexFirst, // range over proportions
-    PropIter_t indexLast) {
+    IndexIter_t indexFirst,   // range over indices
+    IndexIter_t indexLast) {
 
   using InMatrix_t = typename std::iterator_traits<InMatrixIter_t>::value_type;
-
   static_assert(std::is_same<OutMatrix_t, InMatrix_t>(),
-      "assemble() does not support converting between matrix types. Input type "
-      "must match output type.");
+      "`assemble` does not yet support converting between matrix types. Input "
+      "type must match output type.");
 
-  return static_cast<OutMatrix_t>(implementation::Assemble<OutMatrix_t, InMatrixIter_t, PropIter_t>::
-          invoke(matFirst, matLast, indexFirst, indexLast));
+  return implementation::Assemble<OutMatrix_t, InMatrixIter_t, IndexIter_t>::
+          invoke(matFirst, matLast, indexFirst, indexLast);
 }
 
 } // namespace matrixgen
