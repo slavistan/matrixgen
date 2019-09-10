@@ -14,7 +14,7 @@ int main() {
   const auto grid = std::array {4, 4, 1};
 
   /**
-   *
+   * TODO: Explain
    */
   const auto offsets = std::array<DiscreteCoords3d_t, 1> {{0, 0, 0}};
   auto adjfn = [&offsets](
