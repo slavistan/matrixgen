@@ -108,7 +108,7 @@ struct Assemble<Eigen::SparseMatrix<Scalar_t, ALIGNMENT, Index_t>, InMatrixIter_
 
 namespace matrixgen
 {
-/*
+/**
  *  assemble
  *
  *  Returns a new row-major (col-major) matrix built from the row-major

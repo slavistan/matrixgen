@@ -7,10 +7,49 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
+#include <iostream>
+
 using Scalar_t = double;
 using DenseRowMajMat_t  = Eigen::Matrix<Scalar_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
 using matrixgen::create;
+
+/* Provide ostream insertion for `std::vector` for stringification by doctest. */
+namespace std {
+template <typename Elem_t>
+std::ostream& operator<<(std::ostream& os, const std::vector<Elem_t>& vec) {
+  os << "{";
+  for(auto ii = 0u; ii < vec.size() - 1; ++ii) {
+    os << vec[ii] << ",";
+  }
+  if (!vec.empty()) {
+    os << vec.back();
+  }
+  os << "}";
+  return os;
+}
+}
+
+/* Floating-point comparison on `std::vector` to be used by doctest. */
+template <typename Elem_t>
+bool approx_eq(
+    const std::vector<Elem_t>& a,
+    const std::vector<Elem_t>& b,
+    double eps = 0.02) { // maximum allowed relative deviation
+
+  if (a.size() != b.size()) {
+    return false;
+  }
+
+  for(auto ii = 0u; ii < a.size(); ++ii) {
+    if(a[ii] != doctest::Approx(b[ii]).epsilon(eps)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 
 TEST_CASE_TEMPLATE("create", OutMatrix_t,
   Eigen::Matrix<Scalar_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>,
@@ -239,61 +278,149 @@ TEST_CASE("utility") {
     }
   }
 
-  // CONTINUEHERE: Migrate unit tests
-  // SUBCASE("Closed-Loop Moving Mean")
-  // {
-  //   {
-  //   const std::vector<double> numbers = {0, 0.25, 0.5, 0.75};
-  //   {
-  //   //
-  //   // Null-radius leads to untouched values unless they're at the boundary.
-  //   //
-  //   std::vector<double> result(numbers.size());
-  //   matrixgen::closed_loop_moving_mean(numbers.begin(), numbers.end(), result.begin(), 0, 1, 0);
-  //   REQUIRE(result == std::vector<double>({1.0, 0.25, 0.5, 0.75}));
-  //   }
-  //   {
-  //   //
-  //   // Symmetric inner values are untouched + boundary values use all available neighbors only
-  //   //
-  //   std::vector<double> result(numbers.size());
-  //   matrixgen::closed_loop_moving_mean(numbers.begin(), numbers.end(), result.begin(), 0, 1, 1);
-  //   REQUIRE(result == std::vector<double>({0.125, 0.25, 0.5, 0.625}));
-  //   }
-  //   }
-  //   {
-  //   //
-  //   // Non-symmetric inner values get correct treatment
-  //   //
-  //   const std::vector<double> numbers = {0, 1, 6, 8};
-  //   std::vector<double> result(numbers.size());
-  //   matrixgen::closed_loop_moving_mean(numbers.begin(), numbers.end(), result.begin(), 0, 10, 1);
+  SUBCASE("Closed-Loop Moving Mean") {
 
-  //   std::vector<double> expected = {0.5, 10.0, 8.0, 7.0};
-  //   for(auto ii = 0u; ii < result.size(); ++ii)
-  //     REQUIRE(result[ii] == expected[ii]);
-  //   }
-  //   {
-  //   //
-  //   // Non-symmetric inner values get correct treatment
-  //   //
-  //   const std::vector<double> numbers = {0, 6, 1, 9};
-  //   std::vector<double> result(numbers.size());
-  //   matrixgen::closed_loop_moving_mean(numbers.begin(), numbers.end(), result.begin(), 0, 10, 1);
+    SUBCASE("Null-radius does nothing but roll over loop min to loop max") {
+      const auto input = std::vector {0.0, 0.25, 0.5, 0.75};
+      const auto loop_min = 0.0;
+      const auto loop_max = 1.0;
+      const auto radius = 0;
 
-  //   std::vector<double> expected = {8.0, 10.0, 9.0, 10.0};
-  //   for(auto ii = 0u; ii < result.size(); ++ii)
-  //     REQUIRE(result[ii] ==expected[ii]);
-  //   }
-  // }
-  // SUBCASE("Darts Sampling")
-  // {
-  //   std::vector<double> quota = {1, 1, 2};
-  //   std::vector<double> bullets(10);
-  //   std::generate(bullets.begin(), bullets.end(), [index = 0]() mutable -> double { return index++/10.0; });
+      auto result = std::vector<double>(input.size());
+      matrixgen::closed_loop_moving_mean(
+          input.begin(), input.end(), result.begin(),
+          loop_min, loop_max, radius);
 
-  //   std::vector<int> indices(bullets.size());
-  //   matrixgen::darts_sampling(quota.begin(), quota.end(), bullets.begin(), bullets.end(), indices.begin());
-  //   REQUIRE(indices == std::vector<int>({0, 0, 0, 1, 1, 1, 2, 2, 2, 2}));
-  // }
+      const auto targeta = std::vector {1.0, 0.25, 0.5, 0.75};
+      const auto targetb = std::vector {0.0, 0.25, 0.5, 0.75};
+      REQUIRE((result == targeta || result == targetb));
+    }
+
+    SUBCASE("Boundary values use available neighbors only. Symmetric inner values are untouched") {
+      const auto input = std::vector {0.0, 0.25, 0.5, 0.75};
+      const auto loop_min = 0.0;
+      const auto loop_max = 1.0;
+      const auto radius = 1;
+
+      auto result = std::vector<double>(input.size());
+      matrixgen::closed_loop_moving_mean(
+          input.begin(), input.end(), result.begin(),
+          loop_min, loop_max, radius);
+
+      const auto target = std::vector {0.125, 0.25, 0.5, 0.625};
+      REQUIRE(approx_eq(result, target));
+    }
+
+    SUBCASE("Boundary values use available neighbors only. "
+        "Asymmetric inner values are treated correctly") {
+      const auto input = std::vector {0, 1, 6, 8};
+      const auto loop_min = 0.0;
+      const auto loop_max = 10.0;
+      const auto radius = 1;
+
+      auto result = std::vector<double>(input.size());
+      matrixgen::closed_loop_moving_mean(
+          input.begin(), input.end(), result.begin(),
+          loop_min, loop_max, radius);
+
+      const auto target = std::vector {0.5, 10.0, 8.0, 7.0};
+      REQUIRE(approx_eq(result, target));
+    }
+
+    SUBCASE("Asymmetric inner values are treated correctly") {
+      const auto input = std::vector {0, 6, 1, 9};
+      const auto loop_min = 0.0;
+      const auto loop_max = 10.0;
+      const auto radius = 1;
+
+      auto result = std::vector<double>(input.size());
+      matrixgen::closed_loop_moving_mean(
+          input.begin(), input.end(), result.begin(),
+          loop_min, loop_max, radius);
+
+      const auto target = std::vector {8.0, 10.0, 9.0, 10.0};
+      REQUIRE(approx_eq(result, target));
+    }
+  }
+
+  SUBCASE("Darts Sampling") {
+    std::vector<double> quota = {1, 1, 2};
+    std::vector<double> bullets(10);
+    std::generate(bullets.begin(), bullets.end(), [index = 0]() mutable -> double { return index++/10.0; });
+
+    std::vector<int> indices(bullets.size());
+    matrixgen::darts_sampling(quota.begin(), quota.end(), bullets.begin(), bullets.end(), indices.begin());
+    REQUIRE(indices == std::vector<int>({0, 0, 0, 1, 1, 1, 2, 2, 2, 2}));
+  }
+
+  SUBCASE("Insert") {
+
+    using DenseMatrix_t = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
+
+    SUBCASE("Can insert scalars into colmajor matrices") {
+      using SparseMatrix_t = Eigen::SparseMatrix<double, Eigen::ColMajor>;
+
+      auto result = SparseMatrix_t(3, 2);
+      matrixgen::insert(result, 0, 1, 1.0);
+      matrixgen::insert(result, 2, 1, 3.0);
+
+      const auto target = matrixgen::create<SparseMatrix_t>(3, 2,
+          {0.0, 1.0,
+           0.0, 0.0,
+           0.0, 3.0});
+
+      REQUIRE(Eigen::MatrixXd(result) == Eigen::MatrixXd(target));
+    }
+
+    SUBCASE("Can insert scalars into rowmajor matrices") {
+      using SparseMatrix_t = Eigen::SparseMatrix<double, Eigen::RowMajor>;
+
+      auto result = SparseMatrix_t(3, 2);
+      matrixgen::insert(result, 0, 1, 1.0);
+      matrixgen::insert(result, 2, 1, 3.0);
+
+      const auto target = matrixgen::create<SparseMatrix_t>(3, 2,
+          {0.0, 1.0,
+           0.0, 0.0,
+           0.0, 3.0});
+
+      REQUIRE(Eigen::MatrixXd(result) == Eigen::MatrixXd(target));
+    }
+
+    SUBCASE("Can insert dense matrices into colmajor matrices") {
+      using SparseMatrix_t = Eigen::SparseMatrix<double, Eigen::ColMajor>;
+
+      auto filler = DenseMatrix_t(2, 2);
+      filler << 1.0, 1.0, 1.0, 1.0;
+
+      auto result = SparseMatrix_t(4, 4);
+      matrixgen::insert(result, 2, 2, filler);
+
+      const auto target = matrixgen::create<SparseMatrix_t>(4, 4,
+          {0.0, 0.0, 0.0, 0.0,
+           0.0, 0.0, 0.0, 0.0,
+           0.0, 0.0, 1.0, 1.0,
+           0.0, 0.0, 1.0, 1.0});
+
+      REQUIRE(Eigen::MatrixXd(result) == Eigen::MatrixXd(target));
+    }
+
+    SUBCASE("Can insert dense matrices into rowmajor matrices") {
+      using SparseMatrix_t = Eigen::SparseMatrix<double, Eigen::RowMajor>;
+
+      auto filler = DenseMatrix_t(2, 2);
+      filler << 1.0, 1.0, 1.0, 1.0;
+
+      auto result = SparseMatrix_t(4, 4);
+      matrixgen::insert(result, 2, 2, filler);
+
+      const auto target = matrixgen::create<SparseMatrix_t>(4, 4,
+          {0.0, 0.0, 0.0, 0.0,
+           0.0, 0.0, 0.0, 0.0,
+           0.0, 0.0, 1.0, 1.0,
+           0.0, 0.0, 1.0, 1.0});
+
+      REQUIRE(Eigen::MatrixXd(result) == Eigen::MatrixXd(target));
+    }
+  }
 }

@@ -30,7 +30,10 @@ if(BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif()
 
+# TODO: Make doc
 add_subdirectory(documentation)
+
+# TODO: Implement tool for plotting matrices (sparseplot)
 
 ## 3. Install
 ## -----------------------------

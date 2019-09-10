@@ -122,6 +122,7 @@ central_moving_sum(
  * closed_loop_moving_mean
  *
  * TODO: Clarify
+ * TODO: Must input data be sorted?
  *
  * Computes the central moving mean at radius 'radius' over a range of
  * elements [first, last) and writes the outputs to the range pointed by
@@ -159,6 +160,7 @@ closed_loop_moving_mean(
 
   //
   // Working mechanism
+  // TODO :Comment format
   //
   // (1) Create angles from inputs
   // (2) Perform "moving-sum" vector addition on unit vectors corresponding to angles
@@ -273,6 +275,113 @@ darts_sampling(
     auto offset = std::distance(bulletsFirst, it);
     *std::next(outFirst, offset) = index;
   };
+}
+
+template <
+  typename InMatrix_t,
+  typename CoordIndex_t,
+  typename Filler_t
+    >
+struct Insert;
+
+
+/**
+ * Specialization of `insert` for scalar fillers.
+ *
+ * Calls `Eigen::SparseMatrix::insert(row, col) = value`.
+ */
+template <
+  typename Scalar_t,
+  int ALIGNMENT,
+  typename Index_t,
+  typename CoordIndex_t,
+  typename Filler_t
+    >
+struct Insert<Eigen::SparseMatrix<Scalar_t, ALIGNMENT, Index_t>, CoordIndex_t, Filler_t>
+{
+  using InMatrix_t = Eigen::SparseMatrix<Scalar_t, ALIGNMENT, Index_t>;
+
+  static void invoke(
+      InMatrix_t& smat,
+      CoordIndex_t row,
+      CoordIndex_t col,
+      Filler_t object) {
+
+    static_assert(std::is_convertible<Filler_t, Scalar_t>(), "Incompatible filler type.");
+    smat.insert(row, col) = object;
+  }
+};
+
+/**
+ * Specialization of `insert` for fillers of type `Eigen::Matrix`
+*/
+template <
+  typename Scalar_t,
+  int ALIGNMENT,
+  typename Index_t,
+  typename CoordIndex_t,
+  int NUMROWS,
+  int NUMCOLS,
+  int ALIGNMENT2,
+  int MAXNUMROWS,
+  int MAXNUMCOLS
+    >
+struct Insert<Eigen::SparseMatrix<Scalar_t, ALIGNMENT, Index_t>,
+              CoordIndex_t,
+              Eigen::Matrix<Scalar_t, NUMROWS, NUMCOLS, ALIGNMENT2, MAXNUMROWS, MAXNUMCOLS>>
+{
+
+  using InMatrix_t = Eigen::SparseMatrix<Scalar_t, ALIGNMENT, Index_t>;
+  using DenseMatrix_t = Eigen::Matrix<Scalar_t, NUMROWS, NUMCOLS, ALIGNMENT2, MAXNUMROWS, MAXNUMCOLS>;
+
+  static void invoke(
+      InMatrix_t& smat,
+      CoordIndex_t row,
+      CoordIndex_t col,
+      const DenseMatrix_t& dmat) {
+
+    for(auto ii = 0; ii < dmat.rows(); ++ii) {
+      for(auto jj = 0; jj < dmat.cols(); ++jj) {
+        smat.insert(ii + row, jj + col) = dmat(ii, jj);
+      }
+    }
+  }
+};
+
+
+/**
+ * insert
+ *
+ * Insert dense Eigen::matrix objects into sparse Eigen::SparseMatrix objects.
+ *
+ * This function generalizes the functionality provided by the 
+ * `Eigen::SparseMatrix::insert()` member function in that
+ * it allows for dense matrices to be inserted using the same syntax.
+ *
+ * Assuming some 'Eigen::Sparsematrix smat' object calling
+ * 'smat.insert(3, 4) = 1' will insert a single value '1' at coordinates
+ * (3, 4). In contrast, calling 'insert(smat, 3, 4, dmat)' for some 2x3
+ * Eigen::Matrix dense matrix object 'dmat' will yield the calls
+ *
+ * smat.insert(3, 4) = dmat(0, 0);
+ * smat.insert(3, 5) = dmat(0, 1);
+ * smat.insert(3, 6) = dmat(0, 2);
+ * smat.insert(4, 4) = dmat(1, 0);
+ * smat.insert(4, 5) = dmat(1, 1);
+ * smat.insert(4, 6) = dmat(1, 2);
+ */
+template <
+  typename InMatrix_t,   // matrix type
+  typename CoordIndex_t, // type of the row and column indices
+  typename Filler_t      // type of object that's inserted
+    >
+void insert(
+    InMatrix_t& smat,
+    CoordIndex_t row,
+    CoordIndex_t col,
+    const Filler_t& object) {
+
+  Insert<InMatrix_t, CoordIndex_t, Filler_t>::invoke(smat, row, col, object);
 }
 
 } // namespace matrixgen
