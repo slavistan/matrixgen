@@ -119,7 +119,7 @@ struct Adjmat<
    * function lambda. See examples for different use cases.
    *
    * Returns an Eigen::SparseMatrix whose template parameters may be freely
-   * chosed according to the signature of this function template.
+   * chosen according to the signature of this function template.
    */
   static
   Matrix_t

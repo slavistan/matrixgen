@@ -16,7 +16,7 @@ int main() {
    * the number of nodes in the x, y, z direction, with the grid's origin being
    * located at (0, 0, 0).
    *
-   * For the examples we use tiny grids enough to keep the output matrix small
+   * For the examples we use grids tiny enough to keep the output matrix small
    * enough for your poor terminal.
    */
   const auto grid = std::array {3, 3, 1};

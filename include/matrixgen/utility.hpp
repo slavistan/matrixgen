@@ -122,7 +122,6 @@ central_moving_sum(
  * closed_loop_moving_mean
  *
  * TODO: Clarify
- * TODO: Must input data be sorted?
  *
  * Computes the central moving mean at radius 'radius' over a range of
  * elements [first, last) and writes the outputs to the range pointed by

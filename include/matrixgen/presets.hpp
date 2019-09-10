@@ -1,3 +1,6 @@
+/**
+ * Collection of predefined stencil functions and weight functions.
+ */
 #pragma once
 
 #include <gsl/gsl_assert>
@@ -11,9 +14,8 @@
 namespace matrixgen {
 
 /**
- * Collection of predefined stencil function.
+ * Compile-time boundary conditions
  */
-
 enum class BC {
   DIRICHLET,
   NEUMANN,
@@ -279,7 +281,7 @@ auto constweight(Scalar_t val = 1) {
 }
 
 /**
- * Weightfunction returning from a uniform real distribution over [0; 1]
+ * Weightfunction drawing values from a uniform real distribution over [0; 1]
  */
 template <
   typename Scalar_t = double,
