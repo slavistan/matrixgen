@@ -39,8 +39,7 @@ int main() {
    */
   const auto offsets = std::array<DiscreteCoords3d_t, 1> {{0, 0, 0}};
   auto adjfn = [&offsets](
-      const DiscreteCoords3d_t& /* node */,
-      const DiscreteCoords3d_t& /* gridDimensions */) { // TODO: add a second signature without the grid
+      const DiscreteCoords3d_t&  /* node */) {
     return std::pair {offsets.cbegin(), offsets.cend()};
   };
 

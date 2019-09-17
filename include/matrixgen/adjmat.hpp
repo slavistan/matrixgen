@@ -85,7 +85,8 @@ template <
   typename OutMatrix_t,
   typename StencilFn_t,
   typename WeightFn_t,
-  typename Index_t
+  typename Index_t,
+  typename OffsetRange_t
     >
 struct Adjmat {};
 
@@ -101,17 +102,20 @@ template <
   typename EigenIndex_t,
   typename StencilFn_t,
   typename WeightFn_t,
-  typename Index_t
+  typename Index_t,
+  typename OffsetRangeAlias_t
     >
 struct Adjmat<
   Eigen::SparseMatrix<Scalar_t, ALIGNMENT, EigenIndex_t>,
   StencilFn_t,
   WeightFn_t,
-  Index_t
+  Index_t,
+  OffsetRangeAlias_t
     >
 {
 
   using Matrix_t = Eigen::SparseMatrix<Scalar_t, ALIGNMENT, Index_t>;
+  using OffsetRange_t = OffsetRangeAlias_t; // See the comment in the dispatcher
 
   /**
    * Given the dimensions of a grid and a stencil generate an adjacency matrix.
@@ -145,7 +149,7 @@ struct Adjmat<
     //       such thing as a static size of the stencil for me to assume here.
     //       Hence I removed the call to `triplets.reserve()` and use dynamic
     //       reallocation via `push_back()`. Implement some option for the user
-    //       to specify an upper limit to the the triplets vector's size.
+    //       to specify an upper limit to the triplets vector's size.
     //       Below is the previously used allocation code.
     // const auto upperLimToCountOfNnz = matrixHeight * std::size(stencilfn);
     // triplets.reserve(upperLimToCountOfNnz);
@@ -158,9 +162,26 @@ struct Adjmat<
            * For each neighboring node, if it's inside the grid compute the entry's
            * coordinates (i,j) and store it away as triplet.
            */
+          // Dispatch the correct adjacency function's implementation
           const auto myCoords = DiscreteCoords3d_t<Index_t> {xx, yy, zz};
-          // TODO: Comment new implementation
-          const auto offsetRange = stencilfn(myCoords, gridDimensions);
+          auto offsetRange = OffsetRange_t {};
+          if constexpr (std::is_invocable_r<
+                          OffsetRange_t,
+                          StencilFn_t,
+                          DiscreteCoords3d_t<Index_t>
+                            >()) {
+            offsetRange = stencilfn(myCoords);
+          } else if constexpr (std::is_invocable_r<
+                                  OffsetRange_t,
+                                  StencilFn_t,
+                                  DiscreteCoords3d_t<Index_t>,
+                                  DiscreteCoords3d_t<Index_t>
+                                    >()) {
+            offsetRange = stencilfn(myCoords, gridDimensions);
+          } else {
+            static_assert(!std::is_same<Scalar_t, Scalar_t>(),
+                "Adjacency function has invalid signature");
+          }
           for(auto offsetIt = offsetRange.first; offsetIt != offsetRange.second; ++offsetIt){
 
             const auto neighborCoords = DiscreteCoords3d_t<Index_t> {
@@ -261,11 +282,46 @@ adjmat(
     StencilFn_t stencilfn,
     WeightFn_t weightfn) {
 
-  // TODO: Assert stencilfn's signature to avoid funny compilation errors.
-  // TODO: Assert weightfn's signature to avoid funny compilation errors.
+  if constexpr (std::is_invocable<StencilFn_t,
+      implementation::DiscreteCoords3d_t<Index_t>,
+      implementation::DiscreteCoords3d_t<Index_t>>()) {
 
-  return implementation::Adjmat<OutMatrix_t, StencilFn_t, WeightFn_t, Index_t>::
-          invoke(gridDimensions, stencilfn, weightfn);
+    // I have to pass the adjacency function's return type as a template type
+    // parameter to the specialization to avoid code duplication when
+    // dispatching the correct adjacency function's implementation.
+    // Unfortunately
+    //
+    // using OffsetRange_t = std::conditional<
+    //    std::is_invocable<AdjFn_t, DiscreteCoords3d_t<Index_t>>::value,
+    //    std::invoke_result<AdjFn_t, DiscreteCoords3d_t<Index_t>>::type,
+    //    std::invoke_result<AdjFn_t, DiscreteCoords3d_t<Index_t>, DiscreteCoords3d_t<Index>t>>::type
+    //      >::type;
+    //
+    // does not work, as the expressions in std::conditional are eagerly
+    // substituted. Otherwise the expression might be used right inside
+    // the specialization to determine the return type where it's actually
+    // needed.
+    using OffsetRange_t = typename std::invoke_result<
+                                    StencilFn_t,
+                                    implementation::DiscreteCoords3d_t<Index_t>,
+                                    implementation::DiscreteCoords3d_t<Index_t>
+                                      >::type;
+    return implementation::Adjmat<OutMatrix_t, StencilFn_t, WeightFn_t, Index_t, OffsetRange_t>::
+            invoke(gridDimensions, stencilfn, weightfn);
+  } else if constexpr (std::is_invocable<
+                        StencilFn_t,
+                        implementation::DiscreteCoords3d_t<Index_t>
+                          >()) {
+    using OffsetRange_t = typename std::invoke_result<
+                            StencilFn_t,
+                            implementation::DiscreteCoords3d_t<Index_t>
+                              >::type;
+    return implementation::Adjmat<OutMatrix_t, StencilFn_t, WeightFn_t, Index_t, OffsetRange_t>::
+            invoke(gridDimensions, stencilfn, weightfn);
+  } else {
+      static_assert(!std::is_same<Index_t, Index_t>(),
+          "Invalid adjacency function");
+  }
 }
 
 } // namespace matrixgen
