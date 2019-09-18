@@ -13,10 +13,10 @@
 int main()
 {
   /**
-   * Choose a stencil and boundary conditions.
+   * Choose an adjacency function and boundary conditions.
    *
-   * Adjacency matrices for structure grids are generated adhering to a simple
-   * schema: The stencil function is responsible for the location of all
+   * Adjacency matrices for grids are generated adhering to a simple
+   * schema: The adjacency function is responsible for the location of all
    * non-zeros while the weight function determines their values.
    *
    * Thus boundary conditions are implemented within the scope of the stencil
@@ -27,8 +27,8 @@ int main()
    * periodic boundary conditions along the flow path.
    */
   using matrixgen::BC;
-  const auto stencilfn = matrixgen::stencil7p<BC::PERIODIC, BC::DIRICHLET, BC::DIRICHLET>();
-  //                                         ^~~~~ X ~~~^  ^~~~~ Y ~~~~^  ^~~~~ Z ~~~~^
+  const auto adjfn = matrixgen::stencil7p<BC::PERIODIC, BC::DIRICHLET, BC::DIRICHLET>();
+  //                                      ^~~~~ X ~~~^  ^~~~~ Y ~~~~^  ^~~~~ Z ~~~~^
 
   /**
    * Generate the matrix and, optionally, pick a different output matrix type.
@@ -38,12 +38,12 @@ int main()
    * weights from the unit interval. Also, we pass the grid dimensions as a
    * braced-init list.
    *
-   * We convert the matrix to a dense `Eigen::Matrix` for its pretty-print
+   * Finally, we convert the matrix to a dense `Eigen::Matrix` for its pretty-print
    * capabilities.
    */
   using Scalar_t = float; // Try double here
   using Matrix_t = Eigen::SparseMatrix<Scalar_t, Eigen::ColMajor>; // Try RowMajor here
-  const auto mat = matrixgen::adjmat<Matrix_t>({4, 4, 1}, stencilfn, matrixgen::randweight());
+  const auto mat = matrixgen::adjmat<Matrix_t>({4, 4, 1}, adjfn, matrixgen::randweight());
 
   using DenseMatrix_t = Eigen::Matrix<Scalar_t, Eigen::Dynamic, Eigen::Dynamic>;
   std::cout << std::endl << DenseMatrix_t(mat) << std::endl;

@@ -22,7 +22,7 @@ int main() {
   const auto grid = std::array {3, 3, 1};
 
   /**
-   * 2. The Stencil.
+   * 2. The Adjacency Function.
    *
    * Choose a stencil. The stencil encodes the information about which nodes
    * are to be considered adjacent and is hence responsible for the adjacency
@@ -30,7 +30,7 @@ int main() {
    * details in a later example and use a preset symmetric 7-point stencil for
    * now.
    */
-  const auto stencilfn = matrixgen::stencil7p();
+  const auto adjfn = matrixgen::stencil7p();
 
   /**
    * 3. The Weight Function.
@@ -47,6 +47,6 @@ int main() {
    * By default `adjmat` returns an uncompressed row-major
    * `Eigen::SparseMatrix` using a double as its scalar type.
    */
-  const auto mat = matrixgen::adjmat(grid, stencilfn, weightfn);
+  const auto mat = matrixgen::adjmat(grid, adjfn, weightfn);
   std::cout << std::endl << mat << std::endl;
 }

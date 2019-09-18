@@ -1,6 +1,6 @@
 /**
- * Example displaying the inner workings of the stencil abstraction by
- * implementing a simple 1-p stencil.
+ * Example displaying the inner workings of the adjacency function abstraction
+ * by implementing a simple 1-p stencil.
  */
 #include <array>
 #include <iostream>

@@ -83,7 +83,7 @@ get_matrix_entry_coordinates(
 
 template <
   typename OutMatrix_t,
-  typename StencilFn_t,
+  typename AdjFn_t,
   typename WeightFn_t,
   typename Index_t,
   typename OffsetRange_t
@@ -100,14 +100,14 @@ template <
   typename Scalar_t,
   int ALIGNMENT,
   typename EigenIndex_t,
-  typename StencilFn_t,
+  typename AdjFn_t,
   typename WeightFn_t,
   typename Index_t,
   typename OffsetRangeAlias_t
     >
 struct Adjmat<
   Eigen::SparseMatrix<Scalar_t, ALIGNMENT, EigenIndex_t>,
-  StencilFn_t,
+  AdjFn_t,
   WeightFn_t,
   Index_t,
   OffsetRangeAlias_t
@@ -118,7 +118,7 @@ struct Adjmat<
   using OffsetRange_t = OffsetRangeAlias_t; // See the comment in the dispatcher
 
   /**
-   * Given the dimensions of a grid and a stencil generate an adjacency matrix.
+   * Given the dimensions of a grid and an adjfn generate an adjacency matrix.
    * The numeric values of the matrix entries are determined by the weight 
    * function lambda. See examples for different use cases.
    *
@@ -129,7 +129,7 @@ struct Adjmat<
   Matrix_t
   invoke(
     const DiscreteCoords3d_t<Index_t> gridDimensions,
-    StencilFn_t stencilfn,
+    AdjFn_t adjfn,
     WeightFn_t weightfn) {
 
     // The adjacency matrix is a square matrix. Store its height.
@@ -138,20 +138,20 @@ struct Adjmat<
                               gridDimensions[2];
 
     /*
-     * Insert elements according to the chosen stencil. Traverse the grid in
+     * Insert elements according to the adjfn. Traverse the grid in
      * x-then-y-then-z direction and compute the element's numeric value acc. to
      * the weight function.
      * We use initialization via Triplets as described here:
      * http://eigen.tuxfamily.org/dox/group__TutorialSparse.html#TutorialSparseFilling
      */
     auto triplets = std::vector<Eigen::Triplet<Scalar_t>> {};
-    // TODO: As the stencil is now dynamically computed for each node there's no
-    //       such thing as a static size of the stencil for me to assume here.
+    // TODO: As the adj. pattern is now dynamically computed for each node there's
+    //       no such thing as a static size of the stencil for me to assume here.
     //       Hence I removed the call to `triplets.reserve()` and use dynamic
     //       reallocation via `push_back()`. Implement some option for the user
     //       to specify an upper limit to the triplets vector's size.
     //       Below is the previously used allocation code.
-    // const auto upperLimToCountOfNnz = matrixHeight * std::size(stencilfn);
+    // const auto upperLimToCountOfNnz = matrixHeight * std::size(adjfn);
     // triplets.reserve(upperLimToCountOfNnz);
 
     for(auto zz = 0; zz < gridDimensions[2]; ++zz){
@@ -165,20 +165,13 @@ struct Adjmat<
           // Dispatch the correct adjacency function's implementation
           const auto myCoords = DiscreteCoords3d_t<Index_t> {xx, yy, zz};
           auto offsetRange = OffsetRange_t {};
-          if constexpr (std::is_invocable_r<
-                          OffsetRange_t,
-                          StencilFn_t,
-                          DiscreteCoords3d_t<Index_t>
-                            >()) {
-            offsetRange = stencilfn(myCoords);
-          } else if constexpr (std::is_invocable_r<
-                                  OffsetRange_t,
-                                  StencilFn_t,
-                                  DiscreteCoords3d_t<Index_t>,
-                                  DiscreteCoords3d_t<Index_t>
-                                    >()) {
-            offsetRange = stencilfn(myCoords, gridDimensions);
-          } else {
+          if constexpr (std::is_invocable_r<OffsetRange_t, AdjFn_t, DiscreteCoords3d_t<Index_t>>()) {
+            offsetRange = adjfn(myCoords);
+          }
+          else if constexpr (std::is_invocable_r<OffsetRange_t, AdjFn_t, DiscreteCoords3d_t<Index_t>, DiscreteCoords3d_t<Index_t>>()) {
+            offsetRange = adjfn(myCoords, gridDimensions);
+          }
+          else {
             static_assert(!std::is_same<Scalar_t, Scalar_t>(),
                 "Adjacency function has invalid signature");
           }
@@ -272,52 +265,52 @@ namespace matrixgen
  */
 template <
   typename OutMatrix_t = Eigen::SparseMatrix<double, Eigen::RowMajor>,
-  typename StencilFn_t = void,
+  typename AdjFn_t = void,
   typename WeightFn_t = void,
   typename Index_t = int
     >
 OutMatrix_t
 adjmat(
     const implementation::DiscreteCoords3d_t<Index_t>& gridDimensions,
-    StencilFn_t stencilfn,
+    AdjFn_t adjfn,
     WeightFn_t weightfn) {
 
-  if constexpr (std::is_invocable<StencilFn_t,
+  if constexpr (std::is_invocable<AdjFn_t,
       implementation::DiscreteCoords3d_t<Index_t>,
       implementation::DiscreteCoords3d_t<Index_t>>()) {
 
-    // I have to pass the adjacency function's return type as a template type
-    // parameter to the specialization to avoid code duplication when
-    // dispatching the correct adjacency function's implementation.
-    // Unfortunately
-    //
-    // using OffsetRange_t = std::conditional<
-    //    std::is_invocable<AdjFn_t, DiscreteCoords3d_t<Index_t>>::value,
-    //    std::invoke_result<AdjFn_t, DiscreteCoords3d_t<Index_t>>::type,
-    //    std::invoke_result<AdjFn_t, DiscreteCoords3d_t<Index_t>, DiscreteCoords3d_t<Index>t>>::type
-    //      >::type;
-    //
-    // does not work, as the expressions in std::conditional are eagerly
-    // substituted. Otherwise the expression might be used right inside
-    // the specialization to determine the return type where it's actually
-    // needed.
-    using OffsetRange_t = typename std::invoke_result<
-                                    StencilFn_t,
-                                    implementation::DiscreteCoords3d_t<Index_t>,
-                                    implementation::DiscreteCoords3d_t<Index_t>
-                                      >::type;
-    return implementation::Adjmat<OutMatrix_t, StencilFn_t, WeightFn_t, Index_t, OffsetRange_t>::
-            invoke(gridDimensions, stencilfn, weightfn);
+      // I have to pass the adjacency function's return type as a template type
+      // parameter to the specialization to avoid code duplication when
+      // dispatching the correct adjacency function's implementation.
+      // Unfortunately
+      //
+      // using OffsetRange_t = std::conditional<
+      //    std::is_invocable<AdjFn_t, DiscreteCoords3d_t<Index_t>>::value,
+      //    std::invoke_result<AdjFn_t, DiscreteCoords3d_t<Index_t>>::type,
+      //    std::invoke_result<AdjFn_t, DiscreteCoords3d_t<Index_t>, DiscreteCoords3d_t<Index>t>>::type
+      //      >::type;
+      //
+      // does not work, as the expressions in std::conditional are eagerly
+      // substituted. Otherwise the expression might be used right inside
+      // the specialization to determine the return type where it's actually
+      // needed. Damn you TMP.
+      using OffsetRange_t = typename std::invoke_result<
+                                      AdjFn_t,
+                                      implementation::DiscreteCoords3d_t<Index_t>,
+                                      implementation::DiscreteCoords3d_t<Index_t>
+                                        >::type;
+      return implementation::Adjmat<OutMatrix_t, AdjFn_t, WeightFn_t, Index_t, OffsetRange_t>::
+              invoke(gridDimensions, adjfn, weightfn);
   } else if constexpr (std::is_invocable<
-                        StencilFn_t,
+                        AdjFn_t,
                         implementation::DiscreteCoords3d_t<Index_t>
                           >()) {
-    using OffsetRange_t = typename std::invoke_result<
-                            StencilFn_t,
-                            implementation::DiscreteCoords3d_t<Index_t>
-                              >::type;
-    return implementation::Adjmat<OutMatrix_t, StencilFn_t, WeightFn_t, Index_t, OffsetRange_t>::
-            invoke(gridDimensions, stencilfn, weightfn);
+      using OffsetRange_t = typename std::invoke_result<
+                              AdjFn_t,
+                              implementation::DiscreteCoords3d_t<Index_t>
+                                >::type;
+      return implementation::Adjmat<OutMatrix_t, AdjFn_t, WeightFn_t, Index_t, OffsetRange_t>::
+              invoke(gridDimensions, adjfn, weightfn);
   } else {
       static_assert(!std::is_same<Index_t, Index_t>(),
           "Invalid adjacency function");
@@ -325,3 +318,5 @@ adjmat(
 }
 
 } // namespace matrixgen
+
+// TODO: Implement mechanism to insert square matrices with adjmat (port from asc-matrixgen)
