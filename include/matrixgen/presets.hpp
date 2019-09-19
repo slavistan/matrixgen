@@ -4,6 +4,7 @@
  */
 #pragma once
 
+#include <matrixgen/adjmat.hpp>
 #include <matrixgen/utility.hpp>
 
 #include <gsl/gsl_assert>
@@ -32,8 +33,8 @@ template <
     >
 auto stencil7p() {
 
-  return [offsets = std::array<DiscreteCoords3d_t<Index_t>, 7> {}] (
-    const DiscreteCoords3d_t<Index_t>& coords,
+  return [offsets = std::array<Coords3d_t<Index_t>, 7> {}] (
+    const Coords3d_t<Index_t>& coords,
     const std::array<int, 3>& gridDimensions) mutable {
 
     Expects( coords[0] >= 0                );
@@ -189,9 +190,8 @@ auto randweight(Seed_t seed = 1) {
 /**
  * matrixgen::sinusoid_add
  *
- * Additive sinusoidal
- * CONTINUEHERE/TODO: Implement new weightfn signature passing the grid dimensions as additional parameter.
- *                    Then test the new weighfns below.
+ * Additive sinusoidal.
+ * TODO: Add a little text.
  */
 template <
   typename Scalar_t = double,
@@ -199,11 +199,12 @@ template <
     >
 auto sinusoid_add(Scalar_t nx, Scalar_t ny, Scalar_t nz) {
   return
-    [nx=(Scalar_t)nx, ny=(Scalar_t)ny, nz=(Scalar_t)nz]
-    (DiscreteCoords3d_t<Index_t> coords, DiscreteCoords3d_t<Index_t> neighborCoords, DiscreteCoords3d_t<Index_t> gridDimensions) {
-      const Scalar_t xrel = ((Scalar_t)(neighborCoords[0]) - coords[0]) / gridDimensions[0];
-      const Scalar_t yrel = ((Scalar_t)(neighborCoords[1]) - coords[1]) / gridDimensions[1];
-      const Scalar_t zrel = ((Scalar_t)(neighborCoords[2]) - coords[2]) / gridDimensions[2];
+    [nx=static_cast<Scalar_t>(nx), ny=static_cast<Scalar_t>(ny), nz=static_cast<Scalar_t>(nz)]
+    (Coords3d_t<Index_t> coords, Coords3d_t<Index_t> neighborCoords, Coords3d_t<Index_t> gridDimensions) {
+      const auto midpt = midpoint<Scalar_t>(coords, neighborCoords);
+      const Scalar_t xrel = (midpt[0]) / gridDimensions[0];
+      const Scalar_t yrel = (midpt[1]) / gridDimensions[1];
+      const Scalar_t zrel = (midpt[2]) / gridDimensions[2];
       return ((std::sin(matrixgen::pi<Scalar_t>() * nx * xrel)) +
               (std::sin(matrixgen::pi<Scalar_t>() * ny * yrel)) +
               (std::sin(matrixgen::pi<Scalar_t>() * nz * zrel)) / 3);
@@ -213,7 +214,7 @@ auto sinusoid_add(Scalar_t nx, Scalar_t ny, Scalar_t nz) {
 /**
  * matrixgen::sinusoid_add_bias
  *
- * Additive sinusoidal with bias
+ * Biased additive sinusoidal.
  */
 template <
   typename Scalar_t = double,
@@ -221,11 +222,12 @@ template <
     >
 auto sinusoid_add_bias(Scalar_t nx, Scalar_t ny, Scalar_t nz) {
   return
-    [nx=(Scalar_t)nx, ny=(Scalar_t)ny, nz=(Scalar_t)nz]
-    (DiscreteCoords3d_t<Index_t> coords, DiscreteCoords3d_t<Index_t> neighborCoords, DiscreteCoords3d_t<Index_t> gridDimensions) {
-      const Scalar_t xrel = ((Scalar_t)(neighborCoords[0]) - coords[0]) / gridDimensions[0];
-      const Scalar_t yrel = ((Scalar_t)(neighborCoords[1]) - coords[1]) / gridDimensions[1];
-      const Scalar_t zrel = ((Scalar_t)(neighborCoords[2]) - coords[2]) / gridDimensions[2];
+    [nx=static_cast<Scalar_t>(nx), ny=static_cast<Scalar_t>(ny), nz=static_cast<Scalar_t>(nz)]
+    (Coords3d_t<Index_t> coords, Coords3d_t<Index_t> neighborCoords, Coords3d_t<Index_t> gridDimensions) {
+      const auto midpt = midpoint<Scalar_t>(coords, neighborCoords);
+      const Scalar_t xrel = (midpt[0]) / gridDimensions[0];
+      const Scalar_t yrel = (midpt[1]) / gridDimensions[1];
+      const Scalar_t zrel = (midpt[2]) / gridDimensions[2];
       return ((std::sin(matrixgen::pi<Scalar_t>() * nx * xrel)) +
               (std::sin(matrixgen::pi<Scalar_t>() * ny * yrel)) +
               (std::sin(matrixgen::pi<Scalar_t>() * nz * zrel)) / 3) + 1;
@@ -235,7 +237,7 @@ auto sinusoid_add_bias(Scalar_t nx, Scalar_t ny, Scalar_t nz) {
 /**
  * matrixgen::sinusoid_mul
  *
- * Multiplicative sinusoidal
+ * Multiplicative sinusoidal.
  */
 template <
   typename Scalar_t = double,
@@ -243,21 +245,22 @@ template <
     >
 auto sinusoid_mul(Scalar_t nx, Scalar_t ny, Scalar_t nz) {
   return
-    [nx=(Scalar_t)nx, ny=(Scalar_t)ny, nz=(Scalar_t)nz]
-    (DiscreteCoords3d_t<Index_t> coords, DiscreteCoords3d_t<Index_t> neighborCoords, DiscreteCoords3d_t<Index_t> gridDimensions) {
-      const Scalar_t xrel = ((Scalar_t)(neighborCoords[0]) - coords[0]) / gridDimensions[0];
-      const Scalar_t yrel = ((Scalar_t)(neighborCoords[1]) - coords[1]) / gridDimensions[1];
-      const Scalar_t zrel = ((Scalar_t)(neighborCoords[2]) - coords[2]) / gridDimensions[2];
+    [nx=static_cast<Scalar_t>(nx), ny=static_cast<Scalar_t>(ny), nz=static_cast<Scalar_t>(nz)]
+    (Coords3d_t<Index_t> coords, Coords3d_t<Index_t> neighborCoords, Coords3d_t<Index_t> gridDimensions) {
+      const auto midpt = midpoint<Scalar_t>(coords, neighborCoords);
+      const Scalar_t xrel = (midpt[0]) / gridDimensions[0];
+      const Scalar_t yrel = (midpt[1]) / gridDimensions[1];
+      const Scalar_t zrel = (midpt[2]) / gridDimensions[2];
       return ((std::sin(matrixgen::pi<Scalar_t>() * nx * xrel)) *
               (std::sin(matrixgen::pi<Scalar_t>() * ny * yrel)) *
-              (std::sin(matrixgen::pi<Scalar_t>() * nz * zrel)) / 3);
+              (std::sin(matrixgen::pi<Scalar_t>() * nz * zrel)));
     };
 }
 
 /**
  * matrixgen::sinusoid_mul_bias
  *
- * Multiplicative sinusoidal with bias
+ * Biased multiplicative sinusoidal.
  */
 template <
   typename Scalar_t = double,
@@ -265,15 +268,61 @@ template <
     >
 auto sinusoid_mul_bias(Scalar_t nx, Scalar_t ny, Scalar_t nz) {
   return
-    [nx=(Scalar_t)nx, ny=(Scalar_t)ny, nz=(Scalar_t)nz]
-    (DiscreteCoords3d_t<Index_t> coords, DiscreteCoords3d_t<Index_t> neighborCoords, DiscreteCoords3d_t<Index_t> gridDimensions) {
-      const Scalar_t xrel = ((Scalar_t)(neighborCoords[0]) - coords[0]) / gridDimensions[0];
-      const Scalar_t yrel = ((Scalar_t)(neighborCoords[1]) - coords[1]) / gridDimensions[1];
-      const Scalar_t zrel = ((Scalar_t)(neighborCoords[2]) - coords[2]) / gridDimensions[2];
+    [nx=static_cast<Scalar_t>(nx), ny=static_cast<Scalar_t>(ny), nz=static_cast<Scalar_t>(nz)]
+    (Coords3d_t<Index_t> coords, Coords3d_t<Index_t> neighborCoords, Coords3d_t<Index_t> gridDimensions) {
+      const auto midpt = midpoint<Scalar_t>(coords, neighborCoords);
+      const Scalar_t xrel = (midpt[0]) / gridDimensions[0];
+      const Scalar_t yrel = (midpt[1]) / gridDimensions[1];
+      const Scalar_t zrel = (midpt[2]) / gridDimensions[2];
       return ((std::sin(matrixgen::pi<Scalar_t>() * nx * xrel)) *
               (std::sin(matrixgen::pi<Scalar_t>() * ny * yrel)) *
-              (std::sin(matrixgen::pi<Scalar_t>() * nz * zrel)) / 3) + 1;
+              (std::sin(matrixgen::pi<Scalar_t>() * nz * zrel))) + 1;
     };
+}
+
+/*************************************
+ *********** Full Wrappers ***********
+ *************************************/
+
+/**
+ * structured_grid_sinusoidal
+ *
+ * Returns a diagonally dominant matrix whose non-diagonal values are
+ * determinated according to the biased multiplicative sinusoid.
+ */
+template <
+  typename AdjFn_t,
+  int ALIGNMENT = Eigen::RowMajor,
+  typename Scalar_t = double,
+  typename Index_t = int
+    >
+Eigen::SparseMatrix<Scalar_t, ALIGNMENT, Index_t>
+structured_grid_sinusoidal(
+    const Coords3d_t<Index_t>& gridDimensions,
+    AdjFn_t adjfn,
+    Scalar_t nx,
+    Scalar_t ny,
+    Scalar_t nz){
+
+  // Generate the baseline matrix.
+  using OutMatrix_t = Eigen::SparseMatrix<Scalar_t, ALIGNMENT, Index_t>;
+  auto matrix = adjmat<OutMatrix_t>(gridDimensions, adjfn, matrixgen::sinusoid_add_bias(nx, ny, nz));
+
+  // Make matrix diagonally dominant by setting the diagonal elements to their
+  // row's sum over the other elements' absolute values.
+  for(auto ii = 0; ii < matrix.rows(); ++ii) {
+    auto begin = matrix.valuePtr() + (matrix.outerIndexPtr())[ii];
+    auto end = std::next(begin, matrix.row(ii).nonZeros());
+    Scalar_t rowSum = std::accumulate(
+        begin,
+        end,
+        static_cast<Scalar_t>(1), [](auto sum, auto elem){ // Start acc. at 1 to be strictly ddom
+          return sum + std::abs(elem);
+        });
+    matrix.coeffRef(ii, ii) = -(std::abs(rowSum) + 1);
+  }
+
+  return matrix;
 }
 
 } // namespace matrixgen

@@ -2,23 +2,14 @@
 ## Target: matrixgen
 ## Author: Stanislaw Hüll
 
-# TODO: 'Compile' headers into build directory 'build/generated/' and install
-#       them from there. I.e. introduce a compilation phase for the headers
-#       allow things like removing todos from the source code.
-# TODO: Implement a version comment for all header files (and maybe generate
-#       them from there. (I.e. introduce a compilation phase for the headers)
-# TODO: Implement a version comment into all header files (and maybe generate
-#       a version #define).
-
 cmake_minimum_required(VERSION 3.14)
 
 find_package( CMakeshift 3.4 REQUIRED )
 find_package( MS-GSL REQUIRED )
 find_package( Eigen3 3.3 REQUIRED )
+# TODO: Debug-mode does not link without TBB. Why?
+#       The source code never even mentions TBB :(
 find_package( TBB REQUIRED )
-# These might be needed at some point
-# find_package( UMESIMD REQUIRED )
-# find_package( Boost REQUIRED )
 
 add_library(matrixgen INTERFACE)
 
@@ -45,8 +36,6 @@ target_link_libraries(matrixgen
     Eigen3::Eigen
     MS-GSL::MS-GSL
     TBB::tbb
-    # Boost::headers
-    # UMESIMD::UMESIMD
 )
 
 install(

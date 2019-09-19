@@ -17,6 +17,7 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 project(Matrixgen
   VERSION 0.0.1
   LANGUAGES CXX)
+set(CMAKE_CXX_EXTENTIONS OFF)
 
 add_subdirectory(src)
 
@@ -29,11 +30,6 @@ option(BUILD_EXAMPLES "Build examples" ON)
 if(BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif()
-
-# TODO: Make doc
-add_subdirectory(documentation)
-
-# TODO: Implement tool for plotting matrices (sparseplot)
 
 ## 3. Install
 ## -----------------------------

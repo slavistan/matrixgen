@@ -383,32 +383,46 @@ void insert(
   Insert<InMatrix_t, CoordIndex_t, Filler_t>::invoke(smat, row, col, object);
 }
 
-
-template <typename Index_t = int>
-using DiscreteCoords3d_t = std::array<Index_t, 3>;
+// TODO: Unify into Coords3d_t<T>. No need to have two types here.
+template <typename Scalar_t>
+using Coords3d_t = std::array<Scalar_t, 3>;
 
 /**
  * Element-wise addition of arrays.
  */
-template <typename Index_t>
-DiscreteCoords3d_t<Index_t> 
+template <typename Scalar_t>
+Coords3d_t<Scalar_t> 
 operator+(
-    const DiscreteCoords3d_t<Index_t>& a,
-    const DiscreteCoords3d_t<Index_t>& b) {
+    const Coords3d_t<Scalar_t>& a,
+    const Coords3d_t<Scalar_t>& b) {
 
   return {a[0] + b[0], a[1] + b[1], a[2] + b[2]};
 }
 
 /**
- * Element-wise addition of arrays.
+ * Element-wise subtraction of arrays.
  */
-template <typename Index_t>
-DiscreteCoords3d_t<Index_t> 
+template <typename Scalar_t>
+Coords3d_t<Scalar_t> 
 operator-(
-    const DiscreteCoords3d_t<Index_t>& a,
-    const DiscreteCoords3d_t<Index_t>& b) {
+    const Coords3d_t<Scalar_t>& a,
+    const Coords3d_t<Scalar_t>& b) {
 
   return {a[0] - b[0], a[1] - b[1], a[2] - b[2]};
+}
+
+/**
+ * Geometric midpoint
+ */
+template <typename OutScalar_t, typename InScalar_t = void>
+Coords3d_t<OutScalar_t>
+midpoint(const Coords3d_t<InScalar_t>& a, const Coords3d_t<InScalar_t>& b) {
+  static_assert(std::is_floating_point<OutScalar_t>(), "Output type must be real.");
+
+  return Coords3d_t<OutScalar_t> {
+    a[0] + (static_cast<OutScalar_t>((b[0] - a[0])) / 2),
+    a[1] + (static_cast<OutScalar_t>((b[1] - a[1])) / 2),
+    a[2] + (static_cast<OutScalar_t>((b[2] - a[2])) / 2)};
 }
 
 /**
@@ -433,11 +447,11 @@ mod(Scalar_t n, Scalar_t mod) {
 }
 
 template <typename Index_t>
-DiscreteCoords3d_t<Index_t>
+Coords3d_t<Index_t>
 modplus(
-    const DiscreteCoords3d_t<Index_t>& a,
-    const DiscreteCoords3d_t<Index_t>& b,
-    const DiscreteCoords3d_t<Index_t>& modulus) {
+    const Coords3d_t<Index_t>& a,
+    const Coords3d_t<Index_t>& b,
+    const Coords3d_t<Index_t>& modulus) {
 
   return {mod((a[0] + b[0]), modulus[0]),
           mod((a[1] + b[1]), modulus[1]),
@@ -453,8 +467,8 @@ template <
   uint32_t EXTENT = 1
     >
 bool is_inner_node(
-    const DiscreteCoords3d_t<Index_t>& coords,
-    const DiscreteCoords3d_t<Index_t>& gridDimensions) {
+    const Coords3d_t<Index_t>& coords,
+    const Coords3d_t<Index_t>& gridDimensions) {
 
   Expects( coords[0] >= 0                );
   Expects( coords[1] >= 0                );
@@ -474,8 +488,8 @@ bool is_inner_node(
 template <typename Index_t = int>
 bool
 is_inside_grid(
-  const DiscreteCoords3d_t<Index_t>& coords,
-  const DiscreteCoords3d_t<Index_t>& gridDimensions) {
+  const Coords3d_t<Index_t>& coords,
+  const Coords3d_t<Index_t>& gridDimensions) {
 
   Expects( 0 < gridDimensions[0] );
   Expects( 0 < gridDimensions[1] );
@@ -503,10 +517,10 @@ enum class BC {
  * Used in the implementation of `matrixgen::stencil7p`.
  */
 template <std::size_t SIZE, typename Index_t = int>
-const std::array<DiscreteCoords3d_t<Index_t>, SIZE> STENCIL;
+const std::array<Coords3d_t<Index_t>, SIZE> STENCIL;
 
 template <typename Index_t>
-const std::array<DiscreteCoords3d_t<Index_t>, 7> STENCIL<7, Index_t> =
+const std::array<Coords3d_t<Index_t>, 7> STENCIL<7, Index_t> =
   {{{ 0,  0,  0},
     {-1,  0,  0}, {1, 0, 0},   // X .. don't change the order.
     { 0, -1,  0}, {0, 1, 0},   // Y

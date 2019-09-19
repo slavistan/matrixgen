@@ -8,6 +8,8 @@
 
 #include <gsl/gsl_assert>
 
+#include <matrixgen/presets.hpp>
+
 namespace matrixgen::implementation
 {
 
@@ -15,7 +17,7 @@ template <typename Index_t = int>
 using DiscreteCoords2d_t = std::array<Index_t, 2>;
 
 template <typename Index_t = int>
-using DiscreteCoords3d_t = std::array<Index_t, 3>;
+using Coords3d_t = std::array<Index_t, 3>;
 
 /**
  * Return a node's index within its grid. Indexing is always performed in
@@ -26,8 +28,8 @@ using DiscreteCoords3d_t = std::array<Index_t, 3>;
 template <typename Index_t = int>
 Index_t
 get_node_index(
-  const DiscreteCoords3d_t<Index_t>& nodeCoords,
-  const DiscreteCoords3d_t<Index_t>& gridDimensions) {
+  const Coords3d_t<Index_t>& nodeCoords,
+  const Coords3d_t<Index_t>& gridDimensions) {
 
   Expects ( nodeCoords[0] >= 0                );
   Expects ( nodeCoords[1] >= 0                );
@@ -58,9 +60,9 @@ get_node_index(
 template <typename Index_t = int>
 std::array<Index_t, 2>
 get_matrix_entry_coordinates(
-  const DiscreteCoords3d_t<Index_t>& coords,
-  const DiscreteCoords3d_t<Index_t>& neighborCoords,
-  const DiscreteCoords3d_t<Index_t>& gridDimensions) {
+  const Coords3d_t<Index_t>& coords,
+  const Coords3d_t<Index_t>& neighborCoords,
+  const Coords3d_t<Index_t>& gridDimensions) {
 
   Expects ( coords[0] >= 0                        );
   Expects ( coords[1] >= 0                        );
@@ -128,7 +130,7 @@ struct Adjmat<
   static
   Matrix_t
   invoke(
-    const DiscreteCoords3d_t<Index_t> gridDimensions,
+    const Coords3d_t<Index_t> gridDimensions,
     AdjFn_t adjfn,
     WeightFn_t weightfn) {
 
@@ -163,12 +165,12 @@ struct Adjmat<
            * coordinates (i,j) and store it away as triplet.
            */
           // Dispatch the correct adjacency function's implementation
-          const auto myCoords = DiscreteCoords3d_t<Index_t> {xx, yy, zz};
+          const auto myCoords = Coords3d_t<Index_t> {xx, yy, zz};
           auto offsetRange = OffsetRange_t {};
-          if constexpr (std::is_invocable_r<OffsetRange_t, AdjFn_t, DiscreteCoords3d_t<Index_t>>()) {
+          if constexpr (std::is_invocable_r<OffsetRange_t, AdjFn_t, Coords3d_t<Index_t>>()) {
             offsetRange = adjfn(myCoords);
           }
-          else if constexpr (std::is_invocable_r<OffsetRange_t, AdjFn_t, DiscreteCoords3d_t<Index_t>, DiscreteCoords3d_t<Index_t>>()) {
+          else if constexpr (std::is_invocable_r<OffsetRange_t, AdjFn_t, Coords3d_t<Index_t>, Coords3d_t<Index_t>>()) {
             offsetRange = adjfn(myCoords, gridDimensions);
           }
           else {
@@ -177,7 +179,7 @@ struct Adjmat<
           }
           for(auto offsetIt = offsetRange.first; offsetIt != offsetRange.second; ++offsetIt){
 
-            const auto neighborCoords = DiscreteCoords3d_t<Index_t> {
+            const auto neighborCoords = Coords3d_t<Index_t> {
               myCoords[0] + (*offsetIt)[0],
               myCoords[1] + (*offsetIt)[1],
               myCoords[2] + (*offsetIt)[2]
@@ -209,8 +211,8 @@ struct Adjmat<
             else if constexpr (std::is_invocable_r<
                                 Scalar_t,
                                 WeightFn_t,
-                                DiscreteCoords3d_t<int>,
-                                DiscreteCoords3d_t<int>
+                                Coords3d_t<int>,
+                                Coords3d_t<int>
                                >()) {
               value = static_cast<Scalar_t>(weightfn(myCoords, neighborCoords));
             }
@@ -220,10 +222,21 @@ struct Adjmat<
                                 Scalar_t,
                                 WeightFn_t,
                                 DiscreteCoords2d_t<int>,
-                                DiscreteCoords3d_t<int>,
-                                DiscreteCoords3d_t<int>
+                                Coords3d_t<int>,
+                                Coords3d_t<int>
                                  >()) {
               value = static_cast<Scalar_t>(weightfn({{ii, jj}}, myCoords, neighborCoords));
+            }
+            // Same as (C) with an additional parameter for the grid's dimensions.
+            // Used for generic weightfns such as the sinusoids.
+            else if constexpr (std::is_invocable_r<
+                                Scalar_t,
+                                WeightFn_t,
+                                Coords3d_t<int32_t>,
+                                Coords3d_t<int32_t>,
+                                Coords3d_t<int32_t>
+                                 >()) {
+              value = static_cast<Scalar_t>(weightfn(myCoords, neighborCoords, gridDimensions));
             }
             // E. WeightFn had too much to drink again.
             else {
@@ -271,13 +284,13 @@ template <
     >
 OutMatrix_t
 adjmat(
-    const implementation::DiscreteCoords3d_t<Index_t>& gridDimensions,
+    const implementation::Coords3d_t<Index_t>& gridDimensions,
     AdjFn_t adjfn,
     WeightFn_t weightfn) {
 
   if constexpr (std::is_invocable<AdjFn_t,
-      implementation::DiscreteCoords3d_t<Index_t>,
-      implementation::DiscreteCoords3d_t<Index_t>>()) {
+      implementation::Coords3d_t<Index_t>,
+      implementation::Coords3d_t<Index_t>>()) {
 
       // I have to pass the adjacency function's return type as a template type
       // parameter to the specialization to avoid code duplication when
@@ -285,9 +298,9 @@ adjmat(
       // Unfortunately
       //
       // using OffsetRange_t = std::conditional<
-      //    std::is_invocable<AdjFn_t, DiscreteCoords3d_t<Index_t>>::value,
-      //    std::invoke_result<AdjFn_t, DiscreteCoords3d_t<Index_t>>::type,
-      //    std::invoke_result<AdjFn_t, DiscreteCoords3d_t<Index_t>, DiscreteCoords3d_t<Index>t>>::type
+      //    std::is_invocable<AdjFn_t, Coords3d_t<Index_t>>::value,
+      //    std::invoke_result<AdjFn_t, Coords3d_t<Index_t>>::type,
+      //    std::invoke_result<AdjFn_t, Coords3d_t<Index_t>, Coords3d_t<Index>t>>::type
       //      >::type;
       //
       // does not work, as the expressions in std::conditional are eagerly
@@ -296,18 +309,18 @@ adjmat(
       // needed. Damn you TMP.
       using OffsetRange_t = typename std::invoke_result<
                                       AdjFn_t,
-                                      implementation::DiscreteCoords3d_t<Index_t>,
-                                      implementation::DiscreteCoords3d_t<Index_t>
+                                      implementation::Coords3d_t<Index_t>,
+                                      implementation::Coords3d_t<Index_t>
                                         >::type;
       return implementation::Adjmat<OutMatrix_t, AdjFn_t, WeightFn_t, Index_t, OffsetRange_t>::
               invoke(gridDimensions, adjfn, weightfn);
   } else if constexpr (std::is_invocable<
                         AdjFn_t,
-                        implementation::DiscreteCoords3d_t<Index_t>
+                        implementation::Coords3d_t<Index_t>
                           >()) {
       using OffsetRange_t = typename std::invoke_result<
                               AdjFn_t,
-                              implementation::DiscreteCoords3d_t<Index_t>
+                              implementation::Coords3d_t<Index_t>
                                 >::type;
       return implementation::Adjmat<OutMatrix_t, AdjFn_t, WeightFn_t, Index_t, OffsetRange_t>::
               invoke(gridDimensions, adjfn, weightfn);
