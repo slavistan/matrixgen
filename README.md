@@ -1,6 +1,8 @@
-# Matrixgen - Header-only library
+# Matrixgen
 
-## Make `Matrixgen` available to your project
+## Install `Matrixgen`
+
+TODO: Explicitly list dependencies
 
 Using `Matrixgen` in another project can be done by way of a regular `sudo make install` which will copy the pertinent files into your system's *include*, *lib* and *share* directories. The base path defaults to */usr/local/* and may be changed via CMake's `CMAKE_INSTALL_PREFIX` variable in the *CMakeCache.txt* file inside `Matrixgen`'s build directory.
 
@@ -25,6 +27,11 @@ sed -i 's/EXPORT_BUILD_DIR:BOOL=.*/EXPORT_BUILD_DIR:BOOL=ON/g' CMakeCache.txt
 make
 ```
 
+# Make `Matrixgen` available to your project
+
+```cmake
+TODO: Exemplary cmake config
+```
 After successfully performing one of the above methods of installation you may use `Matrixgen` like any other library via CMake's `find_package(Matrixgen REQUIRED)`. Note that, in addition to it's regular library dependencies, `Matrixgen` requires [`CMakeshift`][cmakeshift-url].
 
 [cmakeshift-url]: https://github.com/mbeutel/CMakeshift
