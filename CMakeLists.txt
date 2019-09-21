@@ -15,9 +15,8 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 ## 2. Project & Subdirectories
 ## --------------------------
 project(Matrixgen
-  VERSION 0.0.1
+  VERSION 1.0.0
   LANGUAGES CXX)
-set(CMAKE_CXX_EXTENTIONS OFF)
 
 add_subdirectory(src)
 
