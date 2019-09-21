@@ -2,7 +2,7 @@
 
 ## Install `Matrixgen`
 
-External dependencies for the `Matrixgen` are:
+External dependencies for `Matrixgen` are:
 
 1. [CMakeshift](https://github.com/mbeutel/CMakeshift)
 2. [Microsoft's GSL implementation](https://github.com/microsoft/GSL)
@@ -25,7 +25,7 @@ cmake ..
 sudo make install
 ```
 
-Alternatively, you may also export `Matrixgen`'s build directory without copying any files by settings CMake's `EXPORT_BUILD_DIR` variable in the *CMakeCache.txt* file.
+Alternatively, you may also export `Matrixgen`'s build directory without copying any files by setting CMake's `EXPORT_BUILD_DIR` variable in the *CMakeCache.txt* file.
 
 ```shell
 git clone https://github.com/slavistan/matrixgen.git
