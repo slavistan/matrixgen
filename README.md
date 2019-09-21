@@ -39,10 +39,42 @@ make
 
 # Make `Matrixgen` available to your project
 
-```cmake
-TODO: Exemplary cmake config
+After successfully performing one of the above methods of installation you may use `Matrixgen` like any other library via CMake's `find_package(Matrixgen 1.0.0 REQUIRED)`. The CMake target is called `Matrixgen::matrixgen`.
+
+For a minimum working example create a file `main.cpp` ...
+
+```cpp
+// main.cpp
+#include <matrixgen/core>
+#include <iostream>
+
+int main() {
+  using Matrix_t = Eigen::SparseMatrix<double, Eigen::RowMajor>;
+  const auto mat = matrixgen::create<Matrix_t>(2, 2,
+      { 1, 3,
+        3, 7 });
+  std::cout << mat << std::endl;
+}
 ```
-After successfully performing one of the above methods of installation you may use `Matrixgen` like any other library via CMake's `find_package(Matrixgen REQUIRED)`. Note that, in addition to it's regular library dependencies, `Matrixgen` requires [`CMakeshift`][cmakeshift-url].
+
+and alongside it define your CMake configuration in a `CMakeLists.txt` in the same directory ...
+
+```cmake
+# CMakeLists.txt
+cmake_minimum_required(VERSION 3.14)
+find_package(Matrixgen 1.0.0 REQUIRED)
+add_executable(main main.cpp)
+target_link_libraries(main PRIVATE Matrixgen::matrixgen)
+```
+
+Then build and run the binary.
+
+```sh
+mkdir build
+cd build
+cmake ..
+make && ./main
+```
 
 # How to get started
 
