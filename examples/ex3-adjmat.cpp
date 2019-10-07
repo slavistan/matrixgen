@@ -11,7 +11,7 @@ int main()
   /**
    * Custom weightfunctions are defined as lambdas with correct signatures.
    * The function shall return a scalar convertible to the matrix's scalar
-   * type and shall take be invokable with the following argument types:
+   * type and shall be invokable with the following argument types:
    *
    * 1. Take no argument.
    *  foo ()
@@ -40,7 +40,6 @@ int main()
    * triangular matrix's values shall be the negatives thereof.
    */
   auto weightfn = [](const std::array<int, 2>& coords) {
-
     const auto [row, col] = coords;
     if (row == col) { return -1; }            // diagonal
     if (row < col) { return row + col + 2; }  // upper triangular matrix

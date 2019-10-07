@@ -22,7 +22,7 @@ int main() {
   const auto grid = std::array {3, 3, 1};
 
   /**
-   * 2. The Adjacency Function.
+   * 2. The Adjacency Function aka. the Stencil
    *
    * Choose a stencil. The stencil encodes the information about which nodes
    * are to be considered adjacent and is hence responsible for the adjacency
