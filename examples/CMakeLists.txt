@@ -4,6 +4,8 @@
 
 cmake_minimum_required(VERSION 3.10)
 
+# matrixgen::adjmat
+
 add_executable(ex1-adjmat ex1-adjmat.cpp)
 target_link_libraries(ex1-adjmat
   PRIVATE
@@ -39,6 +41,8 @@ target_link_libraries(ex7-adjmat
   PRIVATE
     matrixgen)
 
+# matrixgen::assemble
+
 add_executable(ex1-assemble ex1-assemble.cpp)
 target_link_libraries(ex1-assemble
   PRIVATE
@@ -46,5 +50,11 @@ target_link_libraries(ex1-assemble
 
 add_executable(ex2-assemble ex2-assemble.cpp)
 target_link_libraries(ex2-assemble
+  PRIVATE
+    matrixgen)
+
+# matrixgen::create
+add_executable(ex1-create ex1-create.cpp)
+target_link_libraries(ex1-create
   PRIVATE
     matrixgen)
