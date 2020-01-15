@@ -20,12 +20,12 @@ project(Matrixgen
 
 add_subdirectory(src)
 
-option(BUILD_TESTS "Build tests" ON)
+option(BUILD_TESTS "Build tests" OFF)
 if(BUILD_TESTS)
   add_subdirectory(unittests)
 endif()
 
-option(BUILD_EXAMPLES "Build examples" ON)
+option(BUILD_EXAMPLES "Build examples" OFF)
 if(BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif()
