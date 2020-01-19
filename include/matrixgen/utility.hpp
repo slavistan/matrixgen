@@ -4,6 +4,7 @@
 
 #include <gsl/gsl-lite.hpp>
 
+#include <chrono>
 #include <execution>
 #include <numeric>
 
@@ -525,5 +526,17 @@ const std::array<Coords3d_t<Index_t>, 7> STENCIL<7, Index_t> =
     {-1,  0,  0}, {1, 0, 0},   // X .. don't change the order.
     { 0, -1,  0}, {0, 1, 0},   // Y
     { 0,  0, -1}, {0, 0, 1}}}; // Z
+
+/**
+ * Generates a uin64_t seed from the system time.
+ */
+template <
+  typename T = void
+    >
+uint64_t seed_from_time() {
+  std::chrono::system_clock::time_point tp = std::chrono::system_clock::now();
+  std::chrono::system_clock::duration dtn = tp.time_since_epoch();
+  return static_cast<uint64_t>(dtn.count());
+}
 
 } // namespace matrixgen

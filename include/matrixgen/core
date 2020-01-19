@@ -5,3 +5,4 @@
 #include <matrixgen/presets.hpp>
 #include <matrixgen/assemble.hpp>
 #include <matrixgen/interleave.hpp>
+#include <matrixgen/perturb.hpp>
