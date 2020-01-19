@@ -2,7 +2,7 @@
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
-#include <gsl/gsl_assert>
+#include <gsl/gsl-lite.hpp>
 
 #include <initializer_list>
 #include <utility>

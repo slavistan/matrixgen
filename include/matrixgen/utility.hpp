@@ -2,7 +2,7 @@
 
 #include <Eigen/Sparse>
 
-#include <gsl/gsl_assert>
+#include <gsl/gsl-lite.hpp>
 
 #include <execution>
 #include <numeric>

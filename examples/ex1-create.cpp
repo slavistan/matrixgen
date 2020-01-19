@@ -7,24 +7,24 @@
 
 int main() {
 
-  using SparseMat_t = Eigen::SparseMatrix<double, Eigen::RowMajor>;
-
   /**
    * `create' is used to construct matrix objects from a matrix's dimensions
    * and a dense list of its values. The output format is specified as the
    * single function template parameter.
    *
    * Supported output formats are all specializations of `Eigen::Matrix' and
-   * `Eigen::SparseMatrix'.`
+   * `Eigen::SparseMatrix'. For this example we choose a dense matrix type.
    */
+  using Matrix_t = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
+
   auto matrix =
-    matrixgen::create<SparseMat_t>(3, 4,
-      {3.14, 0, 0, 5.3,
-       1, 0, 1, 0,
-       1, 1, 0, 0});
+    matrixgen::create<Matrix_t>(3 /* rows */, 4 /* cols */,
+      {3.1, 0.0, 0.0, 5.2,
+       1.0, 0.0, 1.0, 0.0,
+       1.0, 7.7, 0.0, 0.0});
 
   /**
-   * Convert to an `Eigen::Matrix' for pretty-printing.
+   * Print
    */
-  std::cout << std::endl << Eigen::MatrixXd(matrix) << std::endl;
+  std::cout << Eigen::MatrixXd(matrix) << std::endl;
 }

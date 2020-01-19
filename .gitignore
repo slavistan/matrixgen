@@ -1,4 +1,4 @@
 .clangd
-build-release
-compile_commands.json
 build
+build-debug
+compile_commands.json

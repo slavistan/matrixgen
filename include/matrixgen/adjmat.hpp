@@ -6,7 +6,7 @@
 
 #include <Eigen/Sparse>
 
-#include <gsl/gsl_assert>
+#include <gsl/gsl-lite.hpp>
 
 #include <matrixgen/presets.hpp>
 

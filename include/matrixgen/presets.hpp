@@ -7,7 +7,7 @@
 #include <matrixgen/adjmat.hpp>
 #include <matrixgen/utility.hpp>
 
-#include <gsl/gsl_assert>
+#include <gsl/gsl-lite.hpp>
 
 #include <array>
 #include <cmath>

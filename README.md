@@ -5,7 +5,7 @@
 External dependencies for `Matrixgen` are:
 
 1. [CMakeshift](https://github.com/mbeutel/CMakeshift)
-2. [Microsoft's GSL implementation](https://github.com/microsoft/GSL)
+2. [GSL-Lite](https://github.com/martinmoene/gsl-lite)
 3. [Intel's Threading Building Blocks (TBB)](https://github.com/intel/tbb)
 4. [Eigen](https://github.com/libigl/eigen)
 
