@@ -224,11 +224,8 @@ TEST_CASE("perturb") {
                    5, 0, 2, 9,
                    0, 3, 4, 8});
 
-  std::cout << "Input = " << std::endl << Eigen::MatrixXd(matrix) << std::endl;
-
   auto perturbed_matrix = matrixgen::perturb(matrix, {1,2}, matrixgen::seed_from_time());
-
-  std::cout << "Output = " << std::endl << Eigen::MatrixXd(perturbed_matrix) << std::endl;
+  // ??
 }
 
 TEST_CASE("utility") {
