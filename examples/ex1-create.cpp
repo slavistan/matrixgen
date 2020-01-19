@@ -26,5 +26,5 @@ int main() {
   /**
    * Print
    */
-  std::cout << Eigen::MatrixXd(matrix) << std::endl;
+  std::cout << matrix << std::endl;
 }
