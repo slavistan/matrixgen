@@ -70,14 +70,17 @@ struct Perturb<Eigen::SparseMatrix<Scalar_t, ALIGNMENT, Index_t>, InputIter_t> {
 
       auto engine = std::default_random_engine(seed);
 
-      // Generate all possible inner indices. We shuffle this containers and draw the first `outerSize'
-      // to randomize the inner indices as we cannot draw random numbers due to possible duplicates.
+      // Generate all possible inner indices. We shuffle this container and
+      // draw the first `outerSize' to randomize the inner indices as we cannot
+      // draw random numbers due to possible duplicates.
       auto innerIndices = std::vector<Index_t> {};
       innerIndices.resize(matrix.innerSize());
       std::generate(innerIndices.begin(), innerIndices.end(), [ii = (Index_t)0] () mutable { return ii++; });
+      auto innerIndicesIter = innerIndices.begin();
 
       // Distribution from which values will be drawn
       auto dist = std::uniform_real_distribution<Scalar_t>((Scalar_t)1.0, (Scalar_t)2.0);
+      auto randval = [&]() { return dist(engine); };
 
       for (auto it = outerIndicesFirst; it != outerIndicesLast; ++it) {
         const auto outerIndex = *it;
@@ -85,13 +88,18 @@ struct Perturb<Eigen::SparseMatrix<Scalar_t, ALIGNMENT, Index_t>, InputIter_t> {
         const auto nnzInOuter = *std::next(result.outerIndexPtr(), outerIndex + 1)
                                 - *std::next(result.outerIndexPtr(), outerIndex);
 
-        // Shuffle the inner indices for every row and put those that we need in ascending order
-        std::shuffle(innerIndices.begin(), innerIndices.end(), engine);
-        std::sort(innerIndices.begin(), std::next(innerIndices.begin(), nnzInOuter));
-        for(auto nnzCounter = 0; nnzCounter < nnzInOuter; ++nnzCounter) {
-          *std::next(result.valuePtr(), outerOffset + nnzCounter) = dist(engine);
-          *std::next(result.innerIndexPtr(), outerOffset + nnzCounter) = innerIndices[nnzCounter];
+        // Randomize inner indices. We write out the inner indices in ascending
+        // order which makes the output more predictable.
+        if (std::distance(innerIndicesIter, innerIndices.end()) <= nnzInOuter) {
+          std::shuffle(innerIndices.begin(), innerIndices.end(), engine);
+          innerIndicesIter = innerIndices.begin();
         }
+        std::sort(innerIndicesIter, std::next(innerIndicesIter, nnzInOuter));
+        std::copy_n(innerIndicesIter, nnzInOuter, result.innerIndexPtr() + outerOffset);
+        std::advance(innerIndicesIter, nnzInOuter);
+
+        // Randomize values.
+        std::generate_n(result.valuePtr() + outerOffset, nnzInOuter, randval);
       }
       return result;
     } else {

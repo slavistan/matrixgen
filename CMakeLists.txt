@@ -39,10 +39,6 @@ cmakeshift_install_simple_library_package(
   VERSION_COMPATIBILITY SameMajorVersion
   CONFIG_TEMPLATE "cmake/MatrixgenConfig.cmake.in")
 
-#### TODO: The above install-routine is deprecated. Upgrade.
-## find_package(CMakeshift 3.7 REQUIRED)
-## include(CMakeshift/InstallBasicPackageFiles)
-## cmakeshift_install_basic_package_files(
-##   EXPORT MatrixgenTargets
-##   COMPATIBILITY SameMajorVersion
-##   CONFIG_TEMPLATE "cmake/MatrixgenConfig.cmake.in") # "Config template file " .. " not found
+#### TODO:
+# [ ] The above install-routine is deprecated. Upgrade.
+# [ ] 'Export build-directory' is missing. Where'd it go? :(
