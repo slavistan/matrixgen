@@ -22,6 +22,7 @@ add_subdirectory(src)
 
 option(BUILD_TESTS "Build tests" OFF)
 if(BUILD_TESTS)
+  enable_testing()
   add_subdirectory(unittests)
 endif()
 
@@ -33,12 +34,13 @@ endif()
 ## 3. Install
 ## -----------------------------
 find_package(CMakeshift 3.7 REQUIRED)
-include(CMakeshift/InstallSimpleLibraryPackage)
-cmakeshift_install_simple_library_package(
+include(CMakeshift/InstallBasicPackageFiles)
+cmakeshift_install_basic_package_files(Matrixgen
   EXPORT MatrixgenTargets
-  VERSION_COMPATIBILITY SameMajorVersion
-  CONFIG_TEMPLATE "cmake/MatrixgenConfig.cmake.in")
-
-#### TODO:
-# [ ] The above install-routine is deprecated. Upgrade.
-# [ ] 'Export build-directory' is missing. Where'd it go? :(
+  COMPATIBILITY SameMajorVersion
+  DEPENDENCIES
+    "CMakeshift 3.7"
+    "gsl-lite 0.35"
+    "Eigen3 3.3"
+    "TBB"
+  )

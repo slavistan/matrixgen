@@ -9,3 +9,5 @@ target_link_libraries(unittests
   PRIVATE
     matrixgen
     doctest::doctest)
+
+add_test(NAME unittests COMMAND unittests)
