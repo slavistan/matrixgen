@@ -220,11 +220,13 @@ TEST_CASE("perturb") {
 
   using Matrix_t = Eigen::SparseMatrix<double, Eigen::RowMajor>;
   auto matrix = matrixgen::create<Matrix_t>(3, 4,
-                  {0, 0, 3, 3,
-                   5, 0, 2, 9,
+                  {0, 0, 0, 3,
+                   0, 0, 2, 9,
                    0, 3, 4, 8});
 
-  auto perturbed_matrix = matrixgen::perturb(matrix, {1,2}, matrixgen::seed_from_time());
+  auto perturbed_matrix = matrixgen::perturb(matrix, {0, 1, 2}, matrixgen::seed_from_time());
+
+  std::cout << Eigen::MatrixXd(perturbed_matrix) << std::endl;
   // ??
 }
 

@@ -76,13 +76,15 @@ struct Perturb<Eigen::SparseMatrix<Scalar_t, ALIGNMENT, Index_t>, InputIter_t> {
       auto innerIndices = std::vector<Index_t> {};
       innerIndices.resize(matrix.innerSize());
       std::generate(innerIndices.begin(), innerIndices.end(), [ii = (Index_t)0] () mutable { return ii++; });
+      std::shuffle(innerIndices.begin(), innerIndices.end(), engine);
       auto innerIndicesIter = innerIndices.begin();
 
-      // Distribution from which values will be drawn
+      // Initialize distribution from which values will be drawn
       auto dist = std::uniform_real_distribution<Scalar_t>((Scalar_t)1.0, (Scalar_t)2.0);
       auto randval = [&]() { return dist(engine); };
 
       for (auto it = outerIndicesFirst; it != outerIndicesLast; ++it) {
+
         const auto outerIndex = *it;
         const auto outerOffset = *std::next(result.outerIndexPtr(), outerIndex); // Offset into V and CI for this row
         const auto nnzInOuter = *std::next(result.outerIndexPtr(), outerIndex + 1)
@@ -102,7 +104,8 @@ struct Perturb<Eigen::SparseMatrix<Scalar_t, ALIGNMENT, Index_t>, InputIter_t> {
         std::generate_n(result.valuePtr() + outerOffset, nnzInOuter, randval);
       }
       return result;
-    } else {
+    }
+    else {
       static_assert(!std::is_same<Scalar_t, Scalar_t>(), "ColMajor not yet implemented.");
     }
   }
